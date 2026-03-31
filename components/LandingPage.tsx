@@ -321,17 +321,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <section id="mission" className="mission landing-section">
           <div className="container">
             <p className="section-label">Mission</p>
-            <h2 className="section-title">Stewardship of the Semantic Internet</h2>
-            <p className="section-subhead">A neutral institution responsible for the protocol's long-horizon integrity.</p>
+            <h2 className="section-title">Autonomous systems will become more powerful than the institutions that deploy them. </h2>
+            <p className="section-subhead">The only viable path forward is to make that power bounded, verifiable, and sovereign by design.</p>
             <div className="section-text">
-              <p>The IOI Foundation exists to ensure the long-term integrity, neutrality, and evolution of the Internet of Intelligence protocol — the foundational infrastructure for verifiable AI and deterministic agent execution.</p>
-              <p>We operate as custodians, not controllers. Our role is to facilitate governance, fund research, and protect the protocol's core principles across generations of technological change.</p>
+              <p>Autonomous systems are already capable. What's missing is trust.</p>
+              <p>As agents gain the ability to act independently — across code, infrastructure, and real-world systems — the risk is no longer theoretical. Systems that can act without constraint cannot be safely deployed at scale.</p>
+              <p>IOI defines a new category: <strong>sovereign agent infrastructure</strong> — where every actor operates within explicit, enforceable authority boundaries, and every action is provably within bounds.</p>
             </div>
             <div className="mandate-grid">
-              <div className="mandate-block"><h4>Mandate</h4><ul><li>Preserve protocol neutrality and credible upgrade paths</li><li>Fund research and standards work that hardens verifiability</li><li>Publish public records: decisions, grants, audits, and keys</li></ul></div>
-              <div className="mandate-block"><h4>Non-Goals</h4><ul><li>The Foundation does not operate validators</li><li>The Foundation does not control applications or markets</li></ul></div>
+              <div className="mandate-block">
+                <h4>Bounded</h4>
+                <p className="mandate-premise">Autonomy must be constrained by design, not intent.</p>
+                <ul>
+                  <li>Capability-scoped execution and explicit authority boundaries</li>
+                  <li>Dynamic constraints that scale with trust — not static limits on intelligence</li>
+                  <li>Actors cannot exceed their delegated permissions, regardless of model behavior</li>
+                </ul>
+                <p className="mandate-coda">Unbounded autonomy is unsafe.<br/>Bounded autonomy is an engineering discipline.</p>
+              </div>
+              <div className="mandate-block">
+                <h4>Verifiable</h4>
+                <p className="mandate-premise">Trust cannot depend on the platform — it must be independently provable.</p>
+                <ul>
+                  <li>Cryptographic receipts and auditable execution</li>
+                  <li>Deterministic policy enforcement and replayable outcomes</li>
+                  <li>Evidence that an action was valid — not just logs that it happened</li>
+                </ul>
+                <p className="mandate-coda">If a system cannot prove what it did, it cannot be trusted with real authority.</p>
+              </div>
+              <div className="mandate-block">
+                <h4>Sovereign</h4>
+                <p className="mandate-premise">Authority must belong to the user — not the system, not the platform.</p>
+                <ul>
+                  <li>Capability ownership, revocation, and delegation under user control</li>
+                  <li>Portable identity and policy across environments and providers</li>
+                  <li>Verification that does not depend on a single institution</li>
+                </ul>
+                <p className="mandate-coda">Autonomous systems should carry their authority — and their constraints — with them.</p>
+              </div>
             </div>
-            <p className="charter-excerpt"><em>"The Foundation exists to preserve neutrality, publish the record, and steward protocol integrity across technological change."</em></p>
+            <p className="charter-excerpt"><em>"Without a shared framework for bounded and verifiable execution, one system's autonomy becomes another system's risk. IOI provides that framework."</em></p>
           </div>
         </section>
 

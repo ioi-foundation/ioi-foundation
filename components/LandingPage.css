@@ -291,6 +291,22 @@
   margin-bottom: 1rem;
 }
 
+.mandate-premise {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--lp-text-muted-light);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.mandate-coda {
+  font-size: 0.9rem;
+  color: var(--lp-text-dark);
+  margin-top: 1rem;
+  line-height: 1.6;
+  opacity: 0.85;
+}
+
 .mandate-block ul {
   list-style: none;
   padding: 0;
