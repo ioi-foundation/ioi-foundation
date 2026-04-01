@@ -3,18 +3,76 @@ import * as THREE from 'three';
 import { supabase } from '../lib/supabase';
 import './LandingPage.css';
 import { Meeting, Spec } from '../types';
-import { FileText, Calendar, Shield, ExternalLink, ArrowRight } from 'lucide-react';
+import { FileText, Calendar, Shield, ArrowRight, ChevronDown, Check, Search, X } from 'lucide-react';
+import { HeaderLogo } from './ui/HeaderLogo';
 
 interface LandingPageProps {
   onEnterApp: () => void;
 }
 
+interface LanguageOption {
+  code: string;
+  nativeLabel: string;
+  nativeRegion?: string;
+  englishLabel: string;
+  englishRegion?: string;
+}
+
+const LANGUAGE_OPTIONS = [
+  { code: 'sq-AL', nativeLabel: 'shqip', englishLabel: 'Albanian' },
+  { code: 'am-ET', nativeLabel: 'አማርኛ', englishLabel: 'Amharic' },
+  { code: 'ar', nativeLabel: 'العربية', englishLabel: 'Arabic' },
+  { code: 'zh-Hans-CN', nativeLabel: '中文', nativeRegion: 'China', englishLabel: 'Chinese', englishRegion: 'China' },
+  { code: 'zh-Hant-HK', nativeLabel: '中文', nativeRegion: 'Hong Kong', englishLabel: 'Chinese', englishRegion: 'Hong Kong SAR China' },
+  { code: 'zh-Hant', nativeLabel: '中文', nativeRegion: 'Taiwan', englishLabel: 'Chinese', englishRegion: 'Taiwan' },
+  { code: 'nl-NL', nativeLabel: 'Nederlands', englishLabel: 'Dutch' },
+  { code: 'en-US', nativeLabel: 'English', nativeRegion: 'United States', englishLabel: 'English', englishRegion: 'United States' },
+  { code: 'en-GB', nativeLabel: 'English', nativeRegion: 'United Kingdom', englishLabel: 'English', englishRegion: 'United Kingdom' },
+  { code: 'fr-CA', nativeLabel: 'francais', nativeRegion: 'Canada', englishLabel: 'French', englishRegion: 'Canada' },
+  { code: 'fr-FR', nativeLabel: 'francais', nativeRegion: 'France', englishLabel: 'French', englishRegion: 'France' },
+  { code: 'de-DE', nativeLabel: 'Deutsch', englishLabel: 'German' },
+  { code: 'el-GR', nativeLabel: 'Ελληνικά', englishLabel: 'Greek' },
+  { code: 'hi-IN', nativeLabel: 'हिन्दी', englishLabel: 'Hindi' },
+  { code: 'it-IT', nativeLabel: 'italiano', englishLabel: 'Italian' },
+  { code: 'ja-JP', nativeLabel: '日本語', englishLabel: 'Japanese' },
+  { code: 'ko-KR', nativeLabel: '한국어', englishLabel: 'Korean' },
+  { code: 'pt-BR', nativeLabel: 'portugues', nativeRegion: 'Brasil', englishLabel: 'Portuguese', englishRegion: 'Brazil' },
+  { code: 'pt-PT', nativeLabel: 'portugues', nativeRegion: 'Portugal', englishLabel: 'Portuguese', englishRegion: 'Portugal' },
+  { code: 'ru-RU', nativeLabel: 'русский', englishLabel: 'Russian' },
+  { code: 'es-ES', nativeLabel: 'espanol', nativeRegion: 'Espana', englishLabel: 'Spanish', englishRegion: 'Spain' },
+  { code: 'es-419', nativeLabel: 'espanol', nativeRegion: 'Latinoamerica', englishLabel: 'Spanish', englishRegion: 'Latin America' },
+  { code: 'sv-SE', nativeLabel: 'svenska', englishLabel: 'Swedish' },
+  { code: 'tr-TR', nativeLabel: 'Turkce', englishLabel: 'Turkish' },
+] satisfies LanguageOption[];
+
+const LanguageGlobeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" {...props}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M1.667 10a8.333 8.333 0 1 1 16.666 0 8.333 8.333 0 0 1-16.666 0M10 3.333h-.009v.002c-.031.008-.186.074-.41.409-.214.319-.43.792-.622 1.414-.325 1.056-.55 2.446-.61 4.009h3.302c-.06-1.563-.285-2.953-.61-4.009-.192-.622-.408-1.095-.622-1.414-.224-.335-.379-.401-.41-.41zm1.65 7.5h-3.3c.061 1.621.301 3.056.645 4.124.203.627.428 1.088.644 1.382.107.146.198.232.265.28a.4.4 0 0 0 .07.04l.024.008h.004l.023-.007a.4.4 0 0 0 .071-.041 1.3 1.3 0 0 0 .265-.28c.216-.294.441-.755.643-1.382.345-1.068.585-2.503.647-4.124M6.682 9.167c.06-1.704.305-3.264.685-4.499q.152-.494.338-.929a6.67 6.67 0 0 0-4.32 5.428zm-3.296 1.666H6.68c.063 1.766.323 3.379.728 4.635q.135.417.295.793a6.67 6.67 0 0 1-4.32-5.428m9.934 0h3.296a6.67 6.67 0 0 1-4.32 5.428q.162-.376.296-.793c.405-1.256.665-2.87.728-4.635m3.296-1.666h-3.296c-.06-1.704-.305-3.264-.686-4.499q-.15-.494-.337-.929a6.67 6.67 0 0 1 4.319 5.428"
+    />
+  </svg>
+);
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const languageMenuRef = useRef<HTMLDivElement>(null);
+  const languageSearchRef = useRef<HTMLInputElement>(null);
   
   // Dynamic Data State
   const [minutes, setMinutes] = useState<Meeting[]>([]);
   const [ratifiedSpecs, setRatifiedSpecs] = useState<Spec[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageOption>(
+    LANGUAGE_OPTIONS.find((option) => option.code === 'en-US') ?? LANGUAGE_OPTIONS[0]
+  );
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [languageQuery, setLanguageQuery] = useState('');
+
+  const closeLanguageSelector = () => {
+    setIsLanguageOpen(false);
+    setLanguageQuery('');
+  };
 
   // Fetch Public Data
   useEffect(() => {
@@ -45,6 +103,48 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     fetchPublicData();
   }, []);
 
+  useEffect(() => {
+    if (!isLanguageOpen) return;
+
+    languageSearchRef.current?.focus();
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (languageMenuRef.current && !languageMenuRef.current.contains(event.target as Node)) {
+        closeLanguageSelector();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeLanguageSelector();
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isLanguageOpen]);
+
+  const normalizedLanguageQuery = languageQuery.trim().toLowerCase();
+  const filteredLanguageOptions = LANGUAGE_OPTIONS.filter((option) => {
+    if (!normalizedLanguageQuery) return true;
+
+    return [
+      option.nativeLabel,
+      option.nativeRegion ?? '',
+      option.englishLabel,
+      option.englishRegion ?? '',
+      option.code,
+    ]
+      .join(' ')
+      .toLowerCase()
+      .includes(normalizedLanguageQuery);
+  });
+
   // Three.js Animation Effect
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -54,7 +154,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     
     // Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0b); // Matches --lp-bg-dark
+    scene.background = new THREE.Color(0x0a0a0b);
     scene.fog = new THREE.Fog(0x0a0a0b, 650, 1400);
     
     const frustumSize = 550;
@@ -66,8 +166,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     camera.position.set(0, 0, 800);
     
     const renderer = new THREE.WebGLRenderer({
-        canvas: canvasRef.current, 
-        antialias: true, 
+        canvas: canvasRef.current,
+        antialias: true,
         alpha: true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -201,12 +301,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     createOuter();
     createCube(270, 85);
     
-    function updateScale() {
+    function updateLogoLayout() {
         const scale = window.innerWidth < 768 ? 0.4 : 0.55;
         logoGroup.scale.setScalar(scale);
+        logoGroup.position.set(0, 40, 0);
     }
-    updateScale();
-    logoGroup.position.set(0, 40, 0);
+    updateLogoLayout();
     
     let scrollTh = window.innerHeight * 0.3;
     let curSP = 0;
@@ -255,7 +355,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
         renderer.render(scene, camera);
         
-        // Show canvas
         if (canvasRef.current && !canvasRef.current.classList.contains('loaded')) {
             canvasRef.current.classList.add('loaded');
         }
@@ -278,7 +377,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         scrollTh = window.innerHeight * 0.3;
-        updateScale();
+        updateLogoLayout();
     };
 
     window.addEventListener('resize', handleResize);
@@ -292,9 +391,128 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   return (
     <div className="landing-page-wrapper">
-      <button onClick={onEnterApp} className="nav-login-btn">
-        Login
-      </button>
+      <header className="landing-header">
+        <div className="landing-header-shell">
+          <div className="nav-brand" aria-label="IOI Foundation">
+            <HeaderLogo className="nav-brand-logo" />
+          </div>
+
+          <div className="language-selector" ref={languageMenuRef}>
+            {isLanguageOpen && (
+              <button
+                type="button"
+                className="language-selector-overlay"
+                aria-label="Close language selector"
+                onClick={closeLanguageSelector}
+              />
+            )}
+
+            <button
+              type="button"
+              className={`language-selector-button ${isLanguageOpen ? 'is-open' : ''}`}
+              aria-expanded={isLanguageOpen}
+              aria-haspopup="dialog"
+              aria-controls="landing-language-popover"
+              onClick={() => {
+                if (isLanguageOpen) {
+                  closeLanguageSelector();
+                  return;
+                }
+
+                setIsLanguageOpen(true);
+              }}
+            >
+              <LanguageGlobeIcon className="language-selector-icon" aria-hidden="true" />
+              <span className="language-selector-label">
+                <span>{selectedLanguage.nativeLabel}</span>
+                {selectedLanguage.nativeRegion && <span className="language-selector-region">{selectedLanguage.nativeRegion}</span>}
+              </span>
+              <ChevronDown size={14} className={`language-selector-caret ${isLanguageOpen ? 'is-open' : ''}`} />
+            </button>
+
+            {isLanguageOpen && (
+              <div
+                id="landing-language-popover"
+                className="language-selector-popover"
+                role="dialog"
+                aria-labelledby="landing-language-title"
+                tabIndex={-1}
+              >
+                <div className="language-selector-popover-header">
+                  <span id="landing-language-title">Select language</span>
+                  <button
+                    type="button"
+                    className="language-selector-close"
+                    aria-label="Close language selector"
+                    onClick={closeLanguageSelector}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <label className="language-selector-search">
+                  <Search size={14} className="language-selector-search-icon" />
+                  <input
+                    ref={languageSearchRef}
+                    type="text"
+                    value={languageQuery}
+                    onChange={(event) => setLanguageQuery(event.target.value)}
+                    placeholder="Search"
+                    aria-autocomplete="list"
+                    aria-controls="landing-language-listbox"
+                    aria-expanded={isLanguageOpen}
+                    aria-label="Search locales by name or region"
+                    role="combobox"
+                  />
+                </label>
+
+                <div className="language-selector-results">
+                  <ul id="landing-language-listbox" role="listbox" aria-label="Language selector">
+                    {filteredLanguageOptions.map((option) => {
+                      const isSelected = option.code === selectedLanguage.code;
+
+                      return (
+                        <li key={option.code}>
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            className={`language-option ${isSelected ? 'is-selected' : ''}`}
+                            onClick={() => {
+                              setSelectedLanguage(option);
+                              closeLanguageSelector();
+                            }}
+                          >
+                            <span className="language-option-copy">
+                              <span className="language-option-text">
+                                <span>{option.nativeLabel}</span>
+                                {option.nativeRegion && <span className="language-option-region">{option.nativeRegion}</span>}
+                              </span>
+                              <span className="language-option-subtext">
+                                <span>{option.englishLabel}</span>
+                                {option.englishRegion && <span className="language-option-region">{option.englishRegion}</span>}
+                              </span>
+                            </span>
+                            {isSelected && (
+                              <span className="language-option-check-wrap" aria-hidden="true">
+                                <Check size={14} className="language-option-check" />
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {filteredLanguageOptions.length === 0 && (
+                    <div className="language-selector-empty">No locales match your search.</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
 
       <section className="hero">
         <div className="hero-canvas-container">
@@ -482,6 +700,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             <a href="#research">Research</a>
             <a href="#grants">Grants</a>
             <a href="#transparency">Transparency</a>
+            <button type="button" className="footer-link-button" onClick={onEnterApp}>Login</button>
           </nav>
           <p className="footer-copyright">{new Date().getFullYear()} IOI Foundation. Protocol stewardship for the long term.</p>
         </div>

@@ -14,6 +14,7 @@ import { View } from './types';
 import { ToastContainer } from './components/ui/Toast';
 import { Omnibar } from './components/Omnibar';
 import { useRoute } from './hooks/useRoute';
+import { HeaderLogo } from './components/ui/HeaderLogo';
 import { Menu } from 'lucide-react'; // Import Menu icon
 
 const InternalSystem: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
@@ -45,7 +46,10 @@ const InternalSystem: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         >
           <Menu size={20} />
         </button>
-        <span className="ml-2 font-serif font-bold text-zinc-100">IOI Nexus</span>
+        <div className="ml-2 flex items-center gap-2 min-w-0">
+          <HeaderLogo className="w-12 h-12 flex-shrink-0" />
+          <span className="font-serif font-bold text-zinc-100 tracking-wide">IOI Nexus</span>
+        </div>
       </div>
 
       <Sidebar 
