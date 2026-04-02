@@ -5,17 +5,13 @@ const env = (import.meta as any).env || {};
 
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
+export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
-// Fail hard in production if keys are missing to avoid silent failures
-if (env.PROD && (!supabaseUrl || !supabaseAnonKey)) {
-  throw new Error("Fatal: Supabase keys missing in production environment. Please check your deployment settings.");
-}
-
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!hasSupabaseConfig) {
   console.warn('Missing Supabase environment variables. App running in offline/demo mode.');
 }
 
-// Initialize client with fallback values to prevent runtime crash in dev/test
+// Keep the client shape available even when the backend is intentionally absent.
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co', 
   supabaseAnonKey || 'placeholder'

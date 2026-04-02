@@ -7,6 +7,8 @@ import { PublicHeader } from './PublicHeader';
 import { PublicBreadcrumbs } from './PublicBreadcrumbs';
 import { usePublicLanguage } from './publicLanguage';
 import { PUBLIC_PAGE_TRANSLATIONS } from './publicPageTranslations';
+import { SeoHead } from './SeoHead';
+import { buildPublicPath, getPublicSeoPayload } from '../lib/publicRoutes';
 
 interface ResearchPageProps {
   onEnterApp: () => void;
@@ -44,6 +46,13 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
   const { selectedLanguage, setSelectedLanguage } = usePublicLanguage();
   const pageCopy = PUBLIC_PAGE_TRANSLATIONS[selectedLanguage.code] ?? PUBLIC_PAGE_TRANSLATIONS['en-US']!;
   const copy = pageCopy.researchPage;
+  const seo = getPublicSeoPayload('research', selectedLanguage.code);
+  const homePath = buildPublicPath('home', selectedLanguage.code);
+  const charterPath = buildPublicPath('charter', selectedLanguage.code);
+  const bylawsPath = buildPublicPath('bylaws', selectedLanguage.code);
+  const governancePath = buildPublicPath('governance', selectedLanguage.code);
+  const researchPath = buildPublicPath('research', selectedLanguage.code);
+  const transparencyPath = buildPublicPath('home', selectedLanguage.code, '#transparency');
   const translatedItems = researchItems.map((item) => ({
     ...item,
     ...(copy.items[item.slug] ?? {}),
@@ -51,17 +60,25 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
 
   return (
     <div className="landing-page-wrapper bylaws-page-wrapper">
-      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} />
+      <SeoHead {...seo} />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="research" />
 
       <main className="bylaws-main">
         <section className="bylaws-hero landing-section">
           <div className="container">
-            <PublicBreadcrumbs homeLabel={pageCopy.footer.foundation} currentLabel={copy.heroLabel} />
-            <h1 className="bylaws-title">{copy.heroTitle}</h1>
-            <p className="bylaws-subhead">{copy.heroSubhead}</p>
-            <div className="bylaws-hero-actions">
-              <a href="#research-catalog" className="hero-cta">{copy.viewCatalog}</a>
-              <a href="/charter" className="hero-cta">{copy.charterContext}</a>
+            <div className="bylaws-hero-grid">
+              <div className="bylaws-hero-main">
+                <PublicBreadcrumbs homeLabel={pageCopy.footer.foundation} currentLabel={copy.heroLabel} homeHref={homePath} />
+                <h1 className="bylaws-title">{copy.heroTitle}</h1>
+                <p className="bylaws-subhead">{copy.heroSubhead}</p>
+              </div>
+
+              <aside className="bylaws-hero-rail">
+                <div className="bylaws-hero-actions">
+                  <a href="#research-catalog" className="hero-cta">{copy.viewCatalog}</a>
+                  <a href={charterPath} className="hero-cta">{copy.charterContext}</a>
+                </div>
+              </aside>
             </div>
           </div>
         </section>
@@ -96,8 +113,8 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
             </div>
 
             <div className="grants-ctas research-page-links">
-              <a href="/governance" className="section-cta flex items-center gap-2"><FileText size={16} /> {copy.governanceFramework}</a>
-              <a href="/#transparency" className="section-cta flex items-center gap-2"><CheckCircle2 size={16} /> {copy.publicRecord}</a>
+              <a href={governancePath} className="section-cta flex items-center gap-2"><FileText size={16} /> {copy.governanceFramework}</a>
+              <a href={transparencyPath} className="section-cta flex items-center gap-2"><CheckCircle2 size={16} /> {copy.publicRecord}</a>
             </div>
           </div>
         </section>
@@ -105,16 +122,16 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
 
       <footer className="landing-footer">
         <div className="footer-content">
-          <a href="/" className="footer-mark" aria-label="Return to IOI Foundation home">
+          <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="footer-mark-logo" />
           </a>
           <nav className="footer-links">
-            <a href="/">{pageCopy.footer.foundation}</a>
-            <a href="/charter">{pageCopy.footer.charter}</a>
-            <a href="/bylaws">{pageCopy.footer.bylaws}</a>
-            <a href="/governance">{pageCopy.footer.governance}</a>
-            <a href="/research">{pageCopy.footer.research}</a>
-            <a href="/#transparency">{pageCopy.footer.transparency}</a>
+            <a href={homePath}>{pageCopy.footer.foundation}</a>
+            <a href={charterPath}>{pageCopy.footer.charter}</a>
+            <a href={bylawsPath}>{pageCopy.footer.bylaws}</a>
+            <a href={governancePath}>{pageCopy.footer.governance}</a>
+            <a href={researchPath}>{pageCopy.footer.research}</a>
+            <a href={transparencyPath}>{pageCopy.footer.transparency}</a>
             <button type="button" className="footer-link-button" onClick={onEnterApp}>{pageCopy.footer.login}</button>
           </nav>
           <p className="footer-copyright">{new Date().getFullYear()} {pageCopy.footer.copyright}</p>

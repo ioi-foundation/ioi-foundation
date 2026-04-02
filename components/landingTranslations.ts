@@ -68,7 +68,6 @@ export interface LandingTranslation {
     intro: string;
     legalEntityTitle: string;
     legalEntityName: string;
-    legalEntityStatus: string;
     ratifiedStandardsTitle: string;
     recentMinutesTitle: string;
     contactTitle: string;
@@ -189,7 +188,6 @@ export const LANDING_TRANSLATIONS: Record<SupportedLanguageCode, LandingTranslat
       intro: 'Foundations are judged by their records. We publish decisions, governance outcomes, and financial summaries as a matter of institutional duty.',
       legalEntityTitle: 'Legal Entity',
       legalEntityName: 'IOI Labs, Inc.',
-      legalEntityStatus: 'Status: Formation in progress (Dec 2025)',
       ratifiedStandardsTitle: 'Ratified Standards',
       recentMinutesTitle: 'Recent Minutes',
       contactTitle: 'Contact',
@@ -308,7 +306,6 @@ export const LANDING_TRANSLATIONS: Record<SupportedLanguageCode, LandingTranslat
       intro: 'Las fundaciones se juzgan por su historial. Publicamos decisiones, resultados de gobernanza y resúmenes financieros como deber institucional.',
       legalEntityTitle: 'Entidad legal',
       legalEntityName: 'IOI Labs, Inc.',
-      legalEntityStatus: 'Estado: constitución en curso (dic 2025)',
       ratifiedStandardsTitle: 'Estándares ratificados',
       recentMinutesTitle: 'Actas recientes',
       contactTitle: 'Contacto',
@@ -427,7 +424,6 @@ export const LANDING_TRANSLATIONS: Record<SupportedLanguageCode, LandingTranslat
       intro: 'Les fondations sont jugées sur leurs archives. Nous publions les décisions, les résultats de gouvernance et les synthèses financières comme un devoir institutionnel.',
       legalEntityTitle: 'Entité juridique',
       legalEntityName: 'IOI Labs, Inc.',
-      legalEntityStatus: 'Statut : constitution en cours (déc. 2025)',
       ratifiedStandardsTitle: 'Normes ratifiées',
       recentMinutesTitle: 'Procès-verbaux récents',
       contactTitle: 'Contact',
@@ -546,7 +542,6 @@ export const LANDING_TRANSLATIONS: Record<SupportedLanguageCode, LandingTranslat
       intro: 'Stiftungen werden an ihren Aufzeichnungen gemessen. Wir veröffentlichen Entscheidungen, Governance-Ergebnisse und Finanzzusammenfassungen als institutionelle Pflicht.',
       legalEntityTitle: 'Rechtsträger',
       legalEntityName: 'IOI Labs, Inc.',
-      legalEntityStatus: 'Status: Gründung in Arbeit (Dez. 2025)',
       ratifiedStandardsTitle: 'Ratifizierte Standards',
       recentMinutesTitle: 'Aktuelle Protokolle',
       contactTitle: 'Kontakt',

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { hasSupabaseConfig, supabase } from '../lib/supabase';
 import { Notification } from '../types';
 import { useAuth } from './AuthContext';
 import { ToastMessage } from '../components/ui/Toast';
@@ -35,6 +35,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const removeToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
   useEffect(() => {
+    if (!hasSupabaseConfig) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
         setNotifications([]);
         setLoading(false);

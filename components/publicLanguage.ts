@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-
-export type SupportedLanguageCode = 'en-US' | 'es-ES' | 'fr-FR' | 'de-DE';
+import { getPublicRouteMatch, SupportedLanguageCode } from '../lib/publicRoutes';
 
 export interface LanguageOption {
   code: SupportedLanguageCode;
@@ -56,25 +55,17 @@ export const findLanguageOption = (code?: string | null) => {
   });
 };
 
-export const getInitialLanguage = () => {
+export const getLanguageOptionByCode = (code?: string | null) => {
+  return findLanguageOption(code) ?? SUPPORTED_LANGUAGE_OPTIONS.find((option) => option.code === DEFAULT_LANGUAGE_CODE) ?? SUPPORTED_LANGUAGE_OPTIONS[0];
+};
+
+export const getInitialLanguage = (pathname?: string) => {
   if (typeof window === 'undefined') {
     return SUPPORTED_LANGUAGE_OPTIONS.find((option) => option.code === DEFAULT_LANGUAGE_CODE) ?? SUPPORTED_LANGUAGE_OPTIONS[0];
   }
 
-  try {
-    const storedLanguage = findLanguageOption(window.localStorage.getItem(PUBLIC_LANGUAGE_STORAGE_KEY));
-    if (storedLanguage) return storedLanguage;
-  } catch (error) {
-    console.warn('Unable to read language preference from local storage.', error);
-  }
-
-  const browserLanguages = window.navigator.languages?.length ? window.navigator.languages : [window.navigator.language];
-  for (const browserLanguage of browserLanguages) {
-    const matchedLanguage = findLanguageOption(browserLanguage);
-    if (matchedLanguage) return matchedLanguage;
-  }
-
-  return SUPPORTED_LANGUAGE_OPTIONS.find((option) => option.code === DEFAULT_LANGUAGE_CODE) ?? SUPPORTED_LANGUAGE_OPTIONS[0];
+  const routeMatch = getPublicRouteMatch(pathname ?? window.location.pathname);
+  return getLanguageOptionByCode(routeMatch.localeCode);
 };
 
 export const usePublicLanguage = () => {

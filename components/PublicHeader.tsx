@@ -4,6 +4,7 @@ import './LandingPage.css';
 import { HeaderLogo } from './ui/HeaderLogo';
 import { LANDING_TRANSLATIONS } from './landingTranslations';
 import { DEFAULT_LANGUAGE_CODE, LanguageOption, SUPPORTED_LANGUAGE_OPTIONS } from './publicLanguage';
+import { buildPublicPath, PublicRouteKey } from '../lib/publicRoutes';
 
 const LanguageGlobeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" {...props}>
@@ -18,12 +19,14 @@ const LanguageGlobeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 interface PublicHeaderProps {
   selectedLanguage: LanguageOption;
   setSelectedLanguage: (language: LanguageOption) => void;
+  routeKey: PublicRouteKey;
   variant?: 'landing' | 'page';
 }
 
 export const PublicHeader: React.FC<PublicHeaderProps> = ({
   selectedLanguage,
   setSelectedLanguage,
+  routeKey,
   variant = 'page',
 }) => {
   const languageMenuRef = useRef<HTMLDivElement>(null);
@@ -102,10 +105,12 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
       ? `landing-header ${isLandingHeaderStuck ? 'is-stuck' : ''}`
       : `landing-header public-page-header ${isLandingHeaderStuck ? 'is-stuck' : ''}`;
 
+  const homePath = buildPublicPath('home', selectedLanguage.code);
+
   return (
     <header className={headerClassName}>
       <div className="landing-header-shell">
-        <a href="/" className="nav-brand" aria-label="Return to IOI Foundation home">
+        <a href={homePath} className="nav-brand" aria-label="Return to IOI Foundation home">
           <HeaderLogo className="nav-brand-logo" label="IOI Foundation" />
         </a>
 
@@ -177,6 +182,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                           className={`language-option ${isSelected ? 'is-selected' : ''}`}
                           onClick={() => {
                             setSelectedLanguage(option);
+                            if (typeof window !== 'undefined') {
+                              const nextPath = buildPublicPath(routeKey, option.code, window.location.hash);
+                              window.location.href = nextPath;
+                            }
                             closeLanguageSelector();
                           }}
                         >

@@ -1044,10 +1044,25 @@
 }
 
 @media (max-width: 980px) {
+  .bylaws-hero-grid,
   .research-page-header,
   .research-catalog-head,
   .research-catalog-row {
     grid-template-columns: 1fr;
+  }
+
+  .bylaws-hero-rail {
+    width: min(100%, 26rem);
+    justify-self: start;
+  }
+
+  .bylaws-hero-rail .bylaws-hero-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .bylaws-hero-rail .hero-cta {
+    width: auto;
   }
 
   .research-catalog-head {
@@ -1497,9 +1512,20 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.bylaws-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(15rem, 0.65fr);
+  gap: clamp(2.5rem, 6vw, 7rem);
+  align-items: end;
+}
+
+.bylaws-hero-main {
+  min-width: 0;
+}
+
 .bylaws-title {
   margin: 0 0 1.25rem;
-  max-width: 15ch;
+  max-width: 18ch;
   font-family: var(--lp-font-display);
   font-size: clamp(2.8rem, 6vw, 5rem);
   font-weight: 300;
@@ -1510,17 +1536,35 @@
 
 .bylaws-subhead {
   margin: 0;
-  max-width: 46rem;
+  max-width: 40rem;
   font-size: 1.08rem;
   line-height: 1.8;
   color: #c8cdd6;
+}
+
+.bylaws-hero-rail {
+  width: min(100%, 18rem);
+  justify-self: end;
+  align-self: end;
 }
 
 .bylaws-hero-actions {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-top: 2rem;
+  margin-top: 0;
+}
+
+.bylaws-hero-rail .bylaws-hero-actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.bylaws-hero-rail .hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .governance-page-section {
@@ -2081,6 +2125,23 @@
   .bylaws-hero {
     padding-top: 5.75rem;
     padding-bottom: 2.75rem;
+  }
+
+  .bylaws-hero-grid {
+    gap: 1.75rem;
+  }
+
+  .bylaws-hero-rail {
+    width: 100%;
+  }
+
+  .bylaws-hero-rail .bylaws-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bylaws-hero-rail .hero-cta {
+    width: 100%;
   }
 
   .governance-page-grid {

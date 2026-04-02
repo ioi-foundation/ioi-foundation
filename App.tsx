@@ -1,132 +1,49 @@
-import React, { useState } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { SpecViewer } from './components/SpecViewer';
-import { QuestBoard } from './components/QuestBoard';
-import { Archives } from './components/Archives';
-import { TGEDashboard } from './components/TGEDashboard';
-import { NotificationCenter } from './components/NotificationCenter';
-import { LoginGate } from './components/LoginGate';
-import { LandingPage } from './components/LandingPage';
-import { CharterPage } from './components/CharterPage';
-import { BylawsPage } from './components/BylawsPage';
-import { GovernancePage } from './components/GovernancePage';
-import { ResearchPage } from './components/ResearchPage';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
-import { View } from './types';
-import { ToastContainer } from './components/ui/Toast';
-import { Omnibar } from './components/Omnibar';
-import { useRoute } from './hooks/useRoute';
-import { IOILogo } from './components/ui/IOILogo';
-import { Menu } from 'lucide-react'; // Import Menu icon
+import React, { Suspense, lazy, useState } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { hasSupabaseConfig } from './lib/supabase';
+import { getPublicRouteMatch } from './lib/publicRoutes';
 
-const InternalSystem: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-  const { user, logout } = useAuth();
-  const { toasts, removeToast } = useNotifications();
-  const { currentView, navigate } = useRoute('dashboard');
-  
-  // NEW: Sidebar State
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+const InternalApp = lazy(() => import('./components/InternalApp'));
+const LandingPage = lazy(() => import('./components/LandingPage').then((module) => ({ default: module.LandingPage })));
+const CharterPage = lazy(() => import('./components/CharterPage').then((module) => ({ default: module.CharterPage })));
+const BylawsPage = lazy(() => import('./components/BylawsPage').then((module) => ({ default: module.BylawsPage })));
+const GovernancePage = lazy(() => import('./components/GovernancePage').then((module) => ({ default: module.GovernancePage })));
+const ResearchPage = lazy(() => import('./components/ResearchPage').then((module) => ({ default: module.ResearchPage })));
+const NotFoundPage = lazy(() => import('./components/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
 
-  if (!user) {
-    return <LoginGate />;
-  }
-
-  const handleLogout = () => {
-    logout();
-    onLogout();
-  };
-
-  return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans selection:bg-indigo-500/30 overflow-hidden flex">
-      
-      {/* MOBILE HEADER (Visible only on small screens) */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-zinc-900/90 backdrop-blur border-b border-zinc-800 flex items-center px-4 z-40">
-        <button 
-          onClick={() => setIsSidebarOpen(true)} 
-          className="p-2 -ml-2 text-zinc-400 hover:text-white"
-          aria-label="Open Menu"
-        >
-          <Menu size={20} />
-        </button>
-        <div className="ml-2 flex items-center gap-2 min-w-0">
-          <IOILogo className="w-8 h-8 flex-shrink-0" />
-          <span className="font-serif font-bold text-zinc-100 tracking-wide">IOI Nexus</span>
-        </div>
-      </div>
-
-      <Sidebar 
-        currentView={currentView} 
-        onChangeView={(v) => { navigate(v); setIsSidebarOpen(false); }} 
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
-      
-      {/* MAIN CONTENT AREA */}
-      {/* 
-         - md:ml-64: Margin on desktop to make room for sidebar
-         - pt-14: Top padding on mobile for header
-         - md:pt-0: No top padding on desktop
-      */}
-      <main className="flex-1 md:ml-64 h-screen flex flex-col min-w-0 pt-14 md:pt-0 transition-all duration-300">
-        <div className="flex-1 p-4 md:p-8 overflow-hidden max-w-[1920px] w-full mx-auto">
-          {(() => {
-            switch (currentView) {
-              case 'dashboard': return <Dashboard onChangeView={navigate} />;
-              case 'notifications': return <NotificationCenter onChangeView={navigate} />;
-              case 'specs': return <SpecViewer />;
-              case 'quests': return <QuestBoard />;
-              case 'archives': return <Archives />;
-              case 'tge': return <TGEDashboard />;
-              default: return <Dashboard onChangeView={navigate} />;
-            }
-          })()}
-        </div>
-      </main>
-      
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <Omnibar onNavigate={navigate} />
-      
-      {/* Overlay for mobile sidebar */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-    </div>
-  );
-};
+const AppShellFallback: React.FC = () => <div className="min-h-screen bg-[#0a0a0b]" />;
 
 function App() {
   const [isAppMode, setIsAppMode] = useState<boolean>(() => {
-    return !!localStorage.getItem('ioi_nexus_user_id');
+    return hasSupabaseConfig && !!localStorage.getItem('ioi_nexus_user_id');
   });
-  const publicPath = window.location.pathname.replace(/\/+$/, '') || '/';
-  const isCharterPage = publicPath === '/charter';
-  const isBylawsPage = publicPath === '/bylaws';
-  const isGovernancePage = publicPath === '/governance';
-  const isResearchPage = publicPath === '/research';
+
+  const publicRoute = getPublicRouteMatch(window.location.pathname);
+
+  const publicPage = (() => {
+    switch (publicRoute.routeKey) {
+      case 'charter':
+        return <CharterPage onEnterApp={() => setIsAppMode(true)} />;
+      case 'bylaws':
+        return <BylawsPage onEnterApp={() => setIsAppMode(true)} />;
+      case 'governance':
+        return <GovernancePage onEnterApp={() => setIsAppMode(true)} />;
+      case 'research':
+        return <ResearchPage onEnterApp={() => setIsAppMode(true)} />;
+      case 'home':
+        return <LandingPage onEnterApp={() => setIsAppMode(true)} />;
+      default:
+        return <NotFoundPage onEnterApp={() => setIsAppMode(true)} />;
+    }
+  })();
 
   return (
     <AuthProvider>
       <NotificationProvider>
-        {isAppMode ? (
-          <InternalSystem onLogout={() => setIsAppMode(false)} />
-        ) : (
-          isCharterPage ? (
-            <CharterPage onEnterApp={() => setIsAppMode(true)} />
-          ) : isBylawsPage ? (
-            <BylawsPage onEnterApp={() => setIsAppMode(true)} />
-          ) : isGovernancePage ? (
-            <GovernancePage onEnterApp={() => setIsAppMode(true)} />
-          ) : isResearchPage ? (
-            <ResearchPage onEnterApp={() => setIsAppMode(true)} />
-          ) : (
-            <LandingPage onEnterApp={() => setIsAppMode(true)} />
-          )
-        )}
+        <Suspense fallback={<AppShellFallback />}>
+          {isAppMode ? <InternalApp onLogout={() => setIsAppMode(false)} /> : publicPage}
+        </Suspense>
       </NotificationProvider>
     </AuthProvider>
   );

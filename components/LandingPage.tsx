@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { supabase } from '../lib/supabase';
+import { hasSupabaseConfig, supabase } from '../lib/supabase';
 import './LandingPage.css';
 import { Meeting, Spec } from '../types';
 import { FileText, Calendar, Shield } from 'lucide-react';
@@ -9,6 +9,8 @@ import { researchItems } from './research/researchCatalog';
 import { LANDING_TRANSLATIONS } from './landingTranslations';
 import { DEFAULT_LANGUAGE_CODE, usePublicLanguage } from './publicLanguage';
 import { PublicHeader } from './PublicHeader';
+import { SeoHead } from './SeoHead';
+import { buildPublicPath, getPublicSeoPayload } from '../lib/publicRoutes';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -23,9 +25,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const { selectedLanguage, setSelectedLanguage } = usePublicLanguage();
 
   const copy = LANDING_TRANSLATIONS[selectedLanguage.code] ?? LANDING_TRANSLATIONS[DEFAULT_LANGUAGE_CODE];
+  const seo = getPublicSeoPayload('home', selectedLanguage.code);
+  const homePath = buildPublicPath('home', selectedLanguage.code);
+  const charterPath = buildPublicPath('charter', selectedLanguage.code);
+  const bylawsPath = buildPublicPath('bylaws', selectedLanguage.code);
+  const governancePath = buildPublicPath('governance', selectedLanguage.code);
+  const researchPath = buildPublicPath('research', selectedLanguage.code);
+  const transparencyPath = buildPublicPath('home', selectedLanguage.code, '#transparency');
 
   // Fetch Public Data
   useEffect(() => {
+    if (!hasSupabaseConfig) {
+      return;
+    }
+
     const fetchPublicData = async () => {
       try {
         // Fetch latest 3 meetings for Transparency section
@@ -312,7 +325,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   return (
     <div className="landing-page-wrapper">
-      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} variant="landing" />
+      <SeoHead {...seo} />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" variant="landing" />
 
       <section className="hero">
         <div className="hero-canvas-container">
@@ -328,8 +342,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </p>
           <p className="hero-oneliner">{copy.hero.oneliner}</p>
           <div className="hero-ctas">
-            <a href="/charter" className="hero-cta">{copy.hero.charterCta}</a>
-            <a href="/governance" className="hero-cta">{copy.hero.governanceCta}</a>
+            <a href={charterPath} className="hero-cta">{copy.hero.charterCta}</a>
+            <a href={governancePath} className="hero-cta">{copy.hero.governanceCta}</a>
           </div>
         </div>
         <div className="scroll-indicator"></div>
@@ -391,11 +405,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 <p className="charter-banner-text">{copy.charterBanner.text}</p>
               </div>
               <div className="charter-banner-actions">
-                <a href="/charter" className="hero-cta charter-banner-primary">{copy.charterBanner.primaryCta}</a>
+                <a href={charterPath} className="hero-cta charter-banner-primary">{copy.charterBanner.primaryCta}</a>
                 <div className="grants-ctas charter-banner-links">
-                  <a href="/bylaws" className="section-cta flex items-center gap-2"><FileText size={16} /> {copy.charterBanner.bylawsLink}</a>
-                  <a href="/governance" className="section-cta flex items-center gap-2"><Shield size={16} /> {copy.charterBanner.governanceLink}</a>
-                  <a href="#transparency" className="section-cta flex items-center gap-2"><Calendar size={16} /> {copy.charterBanner.decisionLogLink}</a>
+                  <a href={bylawsPath} className="section-cta flex items-center gap-2"><FileText size={16} /> {copy.charterBanner.bylawsLink}</a>
+                  <a href={governancePath} className="section-cta flex items-center gap-2"><Shield size={16} /> {copy.charterBanner.governanceLink}</a>
+                  <a href={transparencyPath} className="section-cta flex items-center gap-2"><Calendar size={16} /> {copy.charterBanner.decisionLogLink}</a>
                 </div>
               </div>
             </div>
@@ -420,7 +434,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </div>
             <div className="open-calls">
               <span className="open-calls-label">{copy.research.catalogLabel}</span>
-              <a href="/research" className="open-calls-date">{copy.research.viewAll}</a>
+              <a href={researchPath} className="open-calls-date">{copy.research.viewAll}</a>
             </div>
           </div>
         </section>
@@ -435,7 +449,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             
             <div className="transparency-grid">
               <div className="transparency-item">
-                <h4>{copy.transparency.legalEntityTitle}</h4><p>{copy.transparency.legalEntityName}<br/>{copy.transparency.legalEntityStatus}</p>
+                <h4>{copy.transparency.legalEntityTitle}</h4>
+                <p>{copy.transparency.legalEntityName}</p>
               </div>
 
               {/* DYNAMIC: Ratified Specs */}
@@ -490,15 +505,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       
       <footer className="landing-footer">
         <div className="footer-content">
-          <a href="/" className="footer-mark" aria-label="Return to IOI Foundation home">
+          <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="footer-mark-logo" />
           </a>
           <nav className="footer-links">
-            <a href="/charter">{copy.footer.charter}</a>
-            <a href="/bylaws">{copy.footer.bylaws}</a>
-            <a href="/governance">{copy.footer.governance}</a>
-            <a href="/research">{copy.footer.research}</a>
-            <a href="#transparency">{copy.footer.transparency}</a>
+            <a href={charterPath}>{copy.footer.charter}</a>
+            <a href={bylawsPath}>{copy.footer.bylaws}</a>
+            <a href={governancePath}>{copy.footer.governance}</a>
+            <a href={researchPath}>{copy.footer.research}</a>
+            <a href={transparencyPath}>{copy.footer.transparency}</a>
             <button type="button" className="footer-link-button" onClick={onEnterApp}>{copy.footer.login}</button>
           </nav>
           <p className="footer-copyright">{new Date().getFullYear()} {copy.footer.copyright}</p>
