@@ -5,6 +5,7 @@ import './LandingPage.css';
 import { Meeting, Spec } from '../types';
 import { FileText, Calendar, Shield, ChevronDown, Check, Search, X } from 'lucide-react';
 import { HeaderLogo } from './ui/HeaderLogo';
+import { researchItems } from './research/researchCatalog';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -393,9 +394,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     <div className="landing-page-wrapper">
       <header className="landing-header">
         <div className="landing-header-shell">
-          <div className="nav-brand" aria-label="IOI Foundation">
+          <a href="/" className="nav-brand" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="nav-brand-logo" />
-          </div>
+          </a>
 
           <div className="language-selector" ref={languageMenuRef}>
             {isLanguageOpen && (
@@ -528,8 +529,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </p>
           <p className="hero-oneliner">A public institution for protocol neutrality, research funding, and long-horizon security.</p>
           <div className="hero-ctas">
-            <a href="/bylaws" className="hero-cta">Read the Bylaws</a>
-            <a href="#governance" className="hero-cta">Governance Process</a>
+            <a href="/charter" className="hero-cta">Read the Charter</a>
+            <a href="/governance" className="hero-cta">Governance Process</a>
           </div>
         </div>
         <div className="scroll-indicator"></div>
@@ -582,36 +583,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </div>
         </section>
 
-        <section id="charter" className="charter-section landing-section">
+        <section id="charter" className="charter-section charter-banner-section landing-section">
           <div className="container">
-            <p className="section-label">Charter</p>
-            <h2 className="section-title">The Foundation Charter</h2>
-            <div className="section-text">
-              <p>The Charter defines enforceable constitutional constraints on protocol action, mutation, and governance. It is designed to outlast market cycles and keep protocol stewardship legible to the public.</p>
-            </div>
-            <div className="grants-ctas">
-              <a href="/bylaws" className="section-cta flex items-center gap-2"><FileText size={16} /> Bylaws</a>
-              <a href="#governance" className="section-cta flex items-center gap-2"><Shield size={16} /> Governance Framework</a>
-              <a href="#transparency" className="section-cta flex items-center gap-2"><Calendar size={16} /> Decision Log</a>
-            </div>
-          </div>
-        </section>
-
-        <section id="governance" className="governance landing-section">
-          <div className="container">
-            <p className="section-label">Governance</p>
-            <h2 className="section-title">Constitutional Protocol Stewardship</h2>
-            <div className="section-text"><p>Protocol governance requires structures that outlast any single generation of stakeholders. The Foundation maintains separation between operational decisions and constitutional amendments, ensuring stability without stagnation.</p></div>
-            <div className="process-flow">
-              <h4>Governance Process</h4>
-              <ol className="process-steps">
-                <li><span className="step-name">Proposal</span><span className="step-desc">IOI Improvement Proposal (IIP) submitted publicly</span></li>
-                <li><span className="step-name">Review</span><span className="step-desc">Technical Council + public comment window</span></li>
-                <li><span className="step-name">Safety</span><span className="step-desc">Formal security review requirements</span></li>
-                <li><span className="step-name">Ratification</span><span className="step-desc">Threshold rule with defined quorum</span></li>
-                <li><span className="step-name">Activation</span><span className="step-desc">Scheduled, versioned, reproducible releases</span></li>
-                <li><span className="step-name">Record</span><span className="step-desc">Final decision + rationale published</span></li>
-              </ol>
+            <div className="charter-banner">
+              <div className="charter-banner-copy">
+                <p className="section-label charter-banner-label">Charter</p>
+                <h2 className="section-title charter-banner-title">The Foundation Charter</h2>
+                <p className="charter-banner-text">Enforceable constitutional constraints on protocol action, mutation, and governance, designed to outlast market cycles and keep stewardship legible to the public.</p>
+              </div>
+              <div className="charter-banner-actions">
+                <a href="/charter" className="hero-cta charter-banner-primary">Read the Charter</a>
+                <div className="grants-ctas charter-banner-links">
+                  <a href="/bylaws" className="section-cta flex items-center gap-2"><FileText size={16} /> Corporate Bylaws</a>
+                  <a href="/governance" className="section-cta flex items-center gap-2"><Shield size={16} /> Governance Framework</a>
+                  <a href="#transparency" className="section-cta flex items-center gap-2"><Calendar size={16} /> Decision Log</a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -622,11 +609,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             <h2 className="section-title">Long-Horizon Technical Investment</h2>
             <div className="section-text"><p>The Foundation funds research that commercial entities cannot justify — work measured in decades, not quarters.</p></div>
             <div className="research-areas">
-              <div className="research-area"><h4>Post-Quantum Migration</h4><p>Developing transition pathways for cryptographic primitives as quantum computing matures.</p><span className="research-deliverable">Deliverables: Reference roadmap, test vectors, upgrade semantics</span></div>
-              <div className="research-area"><h4>Formal Verification</h4><p>Proving protocol correctness through mathematical methods. We invest in tooling that allows critical infrastructure to be verified, not merely tested.</p><span className="research-deliverable">Deliverables: Spec proofs, model checking, invariant suites</span></div>
-              <div className="research-area"><h4>Semantic Consensus</h4><p>Research into deterministic meaning resolution across heterogeneous agent populations.</p><span className="research-deliverable">Deliverables: Canonicalization rules, verifier frameworks, determinism boundaries</span></div>
+              {researchItems.slice(0, 3).map((item) => (
+                <div key={item.slug} className="research-area">
+                  <h4>{item.title}</h4>
+                  <div>
+                    <p>{item.summary}</p>
+                    <span className="research-deliverable">{item.deliverables}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="open-calls"><span className="open-calls-label">Open Calls</span><span className="open-calls-date">Next RFP: Q1 2026</span></div>
+            <div className="open-calls">
+              <span className="open-calls-label">Research Catalog</span>
+              <a href="/research" className="open-calls-date">View All</a>
+            </div>
           </div>
         </section>
 
@@ -697,9 +693,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div className="footer-content">
           <div className="footer-mark">IOI Foundation</div>
           <nav className="footer-links">
+            <a href="/charter">Charter</a>
             <a href="/bylaws">Bylaws</a>
-            <a href="#governance">Governance</a>
-            <a href="#research">Research</a>
+            <a href="/governance">Governance</a>
+            <a href="/research">Research</a>
             <a href="#transparency">Transparency</a>
             <button type="button" className="footer-link-button" onClick={onEnterApp}>Login</button>
           </nav>

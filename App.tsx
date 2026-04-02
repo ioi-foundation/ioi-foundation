@@ -8,14 +8,17 @@ import { TGEDashboard } from './components/TGEDashboard';
 import { NotificationCenter } from './components/NotificationCenter';
 import { LoginGate } from './components/LoginGate';
 import { LandingPage } from './components/LandingPage';
+import { CharterPage } from './components/CharterPage';
 import { BylawsPage } from './components/BylawsPage';
+import { GovernancePage } from './components/GovernancePage';
+import { ResearchPage } from './components/ResearchPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
 import { View } from './types';
 import { ToastContainer } from './components/ui/Toast';
 import { Omnibar } from './components/Omnibar';
 import { useRoute } from './hooks/useRoute';
-import { HeaderLogo } from './components/ui/HeaderLogo';
+import { IOILogo } from './components/ui/IOILogo';
 import { Menu } from 'lucide-react'; // Import Menu icon
 
 const InternalSystem: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
@@ -48,7 +51,7 @@ const InternalSystem: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           <Menu size={20} />
         </button>
         <div className="ml-2 flex items-center gap-2 min-w-0">
-          <HeaderLogo className="w-12 h-12 flex-shrink-0" />
+          <IOILogo className="w-8 h-8 flex-shrink-0" />
           <span className="font-serif font-bold text-zinc-100 tracking-wide">IOI Nexus</span>
         </div>
       </div>
@@ -101,7 +104,10 @@ function App() {
     return !!localStorage.getItem('ioi_nexus_user_id');
   });
   const publicPath = window.location.pathname.replace(/\/+$/, '') || '/';
+  const isCharterPage = publicPath === '/charter';
   const isBylawsPage = publicPath === '/bylaws';
+  const isGovernancePage = publicPath === '/governance';
+  const isResearchPage = publicPath === '/research';
 
   return (
     <AuthProvider>
@@ -109,8 +115,14 @@ function App() {
         {isAppMode ? (
           <InternalSystem onLogout={() => setIsAppMode(false)} />
         ) : (
-          isBylawsPage ? (
+          isCharterPage ? (
+            <CharterPage onEnterApp={() => setIsAppMode(true)} />
+          ) : isBylawsPage ? (
             <BylawsPage onEnterApp={() => setIsAppMode(true)} />
+          ) : isGovernancePage ? (
+            <GovernancePage onEnterApp={() => setIsAppMode(true)} />
+          ) : isResearchPage ? (
+            <ResearchPage onEnterApp={() => setIsAppMode(true)} />
           ) : (
             <LandingPage onEnterApp={() => setIsAppMode(true)} />
           )
