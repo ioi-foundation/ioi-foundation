@@ -8,6 +8,7 @@ import { TGEDashboard } from './components/TGEDashboard';
 import { NotificationCenter } from './components/NotificationCenter';
 import { LoginGate } from './components/LoginGate';
 import { LandingPage } from './components/LandingPage';
+import { BylawsPage } from './components/BylawsPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider, useNotifications } from './contexts/NotificationContext';
 import { View } from './types';
@@ -99,6 +100,8 @@ function App() {
   const [isAppMode, setIsAppMode] = useState<boolean>(() => {
     return !!localStorage.getItem('ioi_nexus_user_id');
   });
+  const publicPath = window.location.pathname.replace(/\/+$/, '') || '/';
+  const isBylawsPage = publicPath === '/bylaws';
 
   return (
     <AuthProvider>
@@ -106,7 +109,11 @@ function App() {
         {isAppMode ? (
           <InternalSystem onLogout={() => setIsAppMode(false)} />
         ) : (
-          <LandingPage onEnterApp={() => setIsAppMode(true)} />
+          isBylawsPage ? (
+            <BylawsPage onEnterApp={() => setIsAppMode(true)} />
+          ) : (
+            <LandingPage onEnterApp={() => setIsAppMode(true)} />
+          )
         )}
       </NotificationProvider>
     </AuthProvider>

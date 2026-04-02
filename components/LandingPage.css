@@ -364,8 +364,232 @@
 }
 
 .charter-section {
-  background: var(--lp-bg-dark);
+  background:
+    radial-gradient(circle at top right, rgba(59, 94, 218, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    var(--lp-bg-dark);
   border-top: 1px solid var(--lp-border);
+}
+
+.charter-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.85fr);
+  gap: 3rem;
+  align-items: end;
+}
+
+.charter-immutable-note {
+  margin: 0;
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 24rem;
+  justify-self: end;
+}
+
+.charter-note-label {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.charter-immutable-note p:last-child {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #b1b7c1;
+}
+
+.charter-shell {
+  display: grid;
+  grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+  gap: 3rem;
+  margin-top: 4rem;
+  align-items: start;
+}
+
+.charter-index {
+  position: sticky;
+  top: 2rem;
+  align-self: start;
+}
+
+.charter-index-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lp-text-muted-light);
+}
+
+.charter-index-link {
+  display: block;
+  padding: 0.95rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.charter-index-link:last-of-type {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.charter-index-link:hover,
+.charter-index-link:focus-visible {
+  color: #fff;
+  transform: translateX(4px);
+  outline: none;
+}
+
+.charter-index-kicker {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lp-text-muted);
+}
+
+.charter-index-title {
+  display: block;
+  font-family: var(--lp-font-display);
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--lp-text-dark);
+}
+
+.charter-document {
+  min-width: 0;
+}
+
+.charter-document-head {
+  padding: 0 0 1.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.charter-document-kicker {
+  margin: 0 0 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lp-text-muted-light);
+}
+
+.charter-document-summary {
+  margin: 0;
+  max-width: 48rem;
+  font-family: var(--lp-font-display);
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  line-height: 1.45;
+  color: var(--lp-text-dark);
+}
+
+.charter-preamble-block,
+.charter-article {
+  padding: 2.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  scroll-margin-top: 5rem;
+}
+
+.charter-rich-text {
+  max-width: 52rem;
+}
+
+.charter-rich-text p {
+  margin: 0 0 1.35rem;
+  font-size: 1.03rem;
+  line-height: 1.8;
+  color: #c8cdd6;
+}
+
+.charter-rich-text p:last-child {
+  margin-bottom: 0;
+}
+
+.charter-article-head {
+  display: grid;
+  grid-template-columns: minmax(7rem, 8.5rem) minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.charter-article-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lp-text-muted-light);
+}
+
+.charter-article-titles {
+  min-width: 0;
+}
+
+.charter-article-title {
+  margin: 0;
+  font-family: var(--lp-font-display);
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--lp-text-dark);
+}
+
+.charter-article-subtitle {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.charter-article-intro {
+  margin: 1.15rem 0 0;
+  max-width: 52rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--lp-text-muted-light);
+}
+
+.charter-clauses {
+  margin-top: 1.6rem;
+}
+
+.charter-clause {
+  display: grid;
+  grid-template-columns: minmax(7rem, 8.5rem) minmax(0, 1fr);
+  gap: 1.2rem;
+  padding: 1.2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.charter-clause-code {
+  padding-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lp-accent);
+}
+
+.charter-clause-copy h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--lp-text-dark);
+}
+
+.charter-clause-copy p {
+  margin: 0;
+  max-width: 54rem;
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: #b1b7c1;
 }
 
 .governance {
@@ -529,6 +753,60 @@
   }
 }
 
+@media (max-width: 980px) {
+  .charter-header,
+  .charter-shell,
+  .charter-article-head,
+  .charter-clause {
+    grid-template-columns: 1fr;
+  }
+
+  .charter-immutable-note {
+    max-width: none;
+    justify-self: stretch;
+  }
+
+  .charter-shell {
+    gap: 2.5rem;
+  }
+
+  .charter-index {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0 1.5rem;
+  }
+
+  .charter-index-label {
+    grid-column: 1 / -1;
+  }
+
+  .charter-index-link:last-of-type {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .charter-shell {
+    margin-top: 3rem;
+  }
+
+  .charter-document-head {
+    padding-bottom: 1.4rem;
+  }
+
+  .charter-document-summary {
+    font-size: 1.25rem;
+  }
+
+  .charter-rich-text p,
+  .charter-clause-copy p,
+  .charter-article-intro {
+    font-size: 0.95rem;
+    line-height: 1.72;
+  }
+}
+
 /* CTAs */
 .grants-ctas {
   display: flex;
@@ -678,6 +956,113 @@
   width: 3rem;
   height: 3rem;
   flex-shrink: 0;
+}
+
+.bylaws-page-wrapper {
+  background: var(--lp-bg-dark);
+}
+
+.bylaws-header {
+  position: sticky;
+  top: 0;
+  background: rgba(10, 10, 11, 0.88);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bylaws-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.bylaws-home-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.bylaws-home-mark {
+  font-family: var(--lp-font-display);
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--lp-text-light);
+}
+
+.bylaws-home-submark {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lp-text-muted-light);
+}
+
+.bylaws-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bylaws-inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  color: var(--lp-text-muted-light);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.bylaws-inline-link:hover,
+.bylaws-inline-link:focus-visible {
+  color: var(--lp-text-light);
+  transform: translateX(-2px);
+  outline: none;
+}
+
+.bylaws-login-cta {
+  padding-inline: 1.1rem;
+}
+
+.bylaws-main {
+  background: var(--lp-bg-dark);
+}
+
+.bylaws-hero {
+  padding-top: 5rem;
+  padding-bottom: 3.5rem;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(59, 94, 218, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    var(--lp-bg-dark);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bylaws-title {
+  margin: 0 0 1.25rem;
+  max-width: 15ch;
+  font-family: var(--lp-font-display);
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: rgba(247, 246, 244, 0.98);
+}
+
+.bylaws-subhead {
+  margin: 0;
+  max-width: 46rem;
+  font-size: 1.08rem;
+  line-height: 1.8;
+  color: #c8cdd6;
+}
+
+.bylaws-hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
 }
 
 .language-selector {
@@ -946,6 +1331,35 @@
   .nav-brand-logo {
     width: 3rem;
     height: 3rem;
+  }
+
+  .bylaws-home-mark {
+    font-size: 1rem;
+  }
+
+  .bylaws-home-submark {
+    font-size: 0.62rem;
+  }
+
+  .bylaws-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .bylaws-hero {
+    padding-top: 3.5rem;
+    padding-bottom: 2.75rem;
+  }
+
+  .bylaws-title {
+    max-width: 100%;
+    font-size: 2.55rem;
+  }
+
+  .bylaws-subhead {
+    font-size: 0.96rem;
+    line-height: 1.72;
   }
 
   .language-selector-button {

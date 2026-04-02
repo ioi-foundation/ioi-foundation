@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { supabase } from '../lib/supabase';
 import './LandingPage.css';
 import { Meeting, Spec } from '../types';
-import { FileText, Calendar, Shield, ArrowRight, ChevronDown, Check, Search, X } from 'lucide-react';
+import { FileText, Calendar, Shield, ChevronDown, Check, Search, X } from 'lucide-react';
 import { HeaderLogo } from './ui/HeaderLogo';
 
 interface LandingPageProps {
@@ -528,7 +528,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </p>
           <p className="hero-oneliner">A public institution for protocol neutrality, research funding, and long-horizon security.</p>
           <div className="hero-ctas">
-            <a href="#charter" className="hero-cta">Read the Charter</a>
+            <a href="/bylaws" className="hero-cta">Read the Bylaws</a>
             <a href="#governance" className="hero-cta">Governance Process</a>
           </div>
         </div>
@@ -586,11 +586,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           <div className="container">
             <p className="section-label">Charter</p>
             <h2 className="section-title">The Foundation Charter</h2>
-            <div className="section-text"><p>The Charter defines the Foundation's mandate, limits, and governance requirements. It is designed to outlast market cycles and keep protocol stewardship legible to the public.</p></div>
+            <div className="section-text">
+              <p>The Charter defines enforceable constitutional constraints on protocol action, mutation, and governance. It is designed to outlast market cycles and keep protocol stewardship legible to the public.</p>
+            </div>
             <div className="grants-ctas">
-                <a href="#" className="section-cta flex items-center gap-2"><FileText size={16} /> Bylaws (PDF)</a>
-                <a href="#" className="section-cta flex items-center gap-2"><Shield size={16} /> Governance Framework</a>
-                <a href="#" className="section-cta flex items-center gap-2"><ArrowRight size={16} /> Decision Log</a>
+              <a href="/bylaws" className="section-cta flex items-center gap-2"><FileText size={16} /> Bylaws</a>
+              <a href="#governance" className="section-cta flex items-center gap-2"><Shield size={16} /> Governance Framework</a>
+              <a href="#transparency" className="section-cta flex items-center gap-2"><Calendar size={16} /> Decision Log</a>
             </div>
           </div>
         </section>
@@ -695,10 +697,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <div className="footer-content">
           <div className="footer-mark">IOI Foundation</div>
           <nav className="footer-links">
-            <a href="#charter">Charter</a>
+            <a href="/bylaws">Bylaws</a>
             <a href="#governance">Governance</a>
             <a href="#research">Research</a>
-            <a href="#grants">Grants</a>
             <a href="#transparency">Transparency</a>
             <button type="button" className="footer-link-button" onClick={onEnterApp}>Login</button>
           </nav>
