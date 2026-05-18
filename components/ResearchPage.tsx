@@ -4,6 +4,7 @@ import './LandingPage.css';
 import { HeaderLogo } from './ui/HeaderLogo';
 import { ResearchItem, ResearchStatus, researchItems } from './research/researchCatalog';
 import { PublicHeader } from './PublicHeader';
+import { PublicFooterLinks } from './PublicFooterLinks';
 import { PublicBreadcrumbs } from './PublicBreadcrumbs';
 import { usePublicLanguage } from './publicLanguage';
 import { PUBLIC_PAGE_TRANSLATIONS } from './publicPageTranslations';
@@ -49,9 +50,7 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
   const seo = getPublicSeoPayload('research', selectedLanguage.code);
   const homePath = buildPublicPath('home', selectedLanguage.code);
   const charterPath = buildPublicPath('charter', selectedLanguage.code);
-  const bylawsPath = buildPublicPath('bylaws', selectedLanguage.code);
   const governancePath = buildPublicPath('governance', selectedLanguage.code);
-  const researchPath = buildPublicPath('research', selectedLanguage.code);
   const transparencyPath = buildPublicPath('home', selectedLanguage.code, '#transparency');
   const translatedItems = researchItems.map((item) => ({
     ...item,
@@ -61,7 +60,7 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
   return (
     <div className="landing-page-wrapper bylaws-page-wrapper">
       <SeoHead {...seo} />
-      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="research" />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="research" onEnterApp={onEnterApp} />
 
       <main className="bylaws-main">
         <section className="bylaws-hero landing-section">
@@ -125,15 +124,7 @@ export const ResearchPage: React.FC<ResearchPageProps> = ({ onEnterApp }) => {
           <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="footer-mark-logo" />
           </a>
-          <nav className="footer-links">
-            <a href={homePath}>{pageCopy.footer.foundation}</a>
-            <a href={charterPath}>{pageCopy.footer.charter}</a>
-            <a href={bylawsPath}>{pageCopy.footer.bylaws}</a>
-            <a href={governancePath}>{pageCopy.footer.governance}</a>
-            <a href={researchPath}>{pageCopy.footer.research}</a>
-            <a href={transparencyPath}>{pageCopy.footer.transparency}</a>
-            <button type="button" className="footer-link-button" onClick={onEnterApp}>{pageCopy.footer.login}</button>
-          </nav>
+          <PublicFooterLinks languageCode={selectedLanguage.code} />
           <p className="footer-copyright">{new Date().getFullYear()} {pageCopy.footer.copyright}</p>
         </div>
       </footer>

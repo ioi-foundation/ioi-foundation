@@ -2,6 +2,7 @@ import React from 'react';
 import './LandingPage.css';
 import { HeaderLogo } from './ui/HeaderLogo';
 import { PublicHeader } from './PublicHeader';
+import { PublicFooterLinks } from './PublicFooterLinks';
 import { SeoHead } from './SeoHead';
 import { usePublicLanguage } from './publicLanguage';
 import { buildPublicPath } from '../lib/publicRoutes';
@@ -68,7 +69,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onEnterApp }) => {
         alternates={[]}
         structuredData={[]}
       />
-      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" onEnterApp={onEnterApp} />
 
       <main className="bylaws-main">
         <section className="bylaws-hero landing-section">
@@ -95,11 +96,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onEnterApp }) => {
           <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="footer-mark-logo" />
           </a>
-          <nav className="footer-links">
-            <a href={homePath}>{copy.foundation}</a>
-            <a href={charterPath}>{copy.charter}</a>
-            <button type="button" className="footer-link-button" onClick={onEnterApp}>{copy.login}</button>
-          </nav>
+          <PublicFooterLinks languageCode={selectedLanguage.code} />
         </div>
       </footer>
     </div>

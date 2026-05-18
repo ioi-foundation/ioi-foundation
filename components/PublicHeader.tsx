@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, Check, Search, X } from 'lucide-react';
+import { BookOpenText, ChevronDown, Check, FileText, Landmark, LogIn, Microscope, Search, ShieldCheck, X } from 'lucide-react';
 import './LandingPage.css';
 import { HeaderLogo } from './ui/HeaderLogo';
 import { LANDING_TRANSLATIONS } from './landingTranslations';
@@ -16,11 +16,59 @@ const LanguageGlobeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
+const PUBLIC_NAV_DESCRIPTIONS = {
+  'en-US': {
+    title: 'Public navigation',
+    openLabel: 'Open navigation menu',
+    closeLabel: 'Close navigation menu',
+    closeText: 'Close',
+    charter: 'Immutable constitution',
+    governance: 'Stewardship process',
+    research: 'Long-horizon work',
+    transparency: 'Public record',
+    bylaws: 'Corporate source',
+  },
+  'es-ES': {
+    title: 'Navegación pública',
+    openLabel: 'Abrir menú de navegación',
+    closeLabel: 'Cerrar menú de navegación',
+    closeText: 'Cerrar',
+    charter: 'Constitución inmutable',
+    governance: 'Proceso de custodia',
+    research: 'Trabajo de largo plazo',
+    transparency: 'Registro público',
+    bylaws: 'Fuente corporativa',
+  },
+  'fr-FR': {
+    title: 'Navigation publique',
+    openLabel: 'Ouvrir le menu de navigation',
+    closeLabel: 'Fermer le menu de navigation',
+    closeText: 'Fermer',
+    charter: 'Constitution immuable',
+    governance: 'Processus de stewardship',
+    research: 'Travail de long terme',
+    transparency: 'Registre public',
+    bylaws: 'Source sociale',
+  },
+  'de-DE': {
+    title: 'Öffentliche Navigation',
+    openLabel: 'Navigationsmenü öffnen',
+    closeLabel: 'Navigationsmenü schließen',
+    closeText: 'Schließen',
+    charter: 'Unveränderliche Verfassung',
+    governance: 'Stewardship-Prozess',
+    research: 'Langfristige Arbeit',
+    transparency: 'Öffentliche Aufzeichnung',
+    bylaws: 'Gesellschaftsquelle',
+  },
+} as const;
+
 interface PublicHeaderProps {
   selectedLanguage: LanguageOption;
   setSelectedLanguage: (language: LanguageOption) => void;
   routeKey: PublicRouteKey;
   variant?: 'landing' | 'page';
+  onEnterApp?: () => void;
 }
 
 export const PublicHeader: React.FC<PublicHeaderProps> = ({
@@ -28,11 +76,13 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   setSelectedLanguage,
   routeKey,
   variant = 'page',
+  onEnterApp,
 }) => {
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const languageSearchRef = useRef<HTMLInputElement>(null);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [languageQuery, setLanguageQuery] = useState('');
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [isLandingHeaderStuck, setIsLandingHeaderStuck] = useState(false);
 
   const languageCopy =
@@ -42,6 +92,10 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
   const closeLanguageSelector = () => {
     setIsLanguageOpen(false);
     setLanguageQuery('');
+  };
+
+  const closePrimaryNav = () => {
+    setIsNavOpen(false);
   };
 
   useEffect(() => {
@@ -84,6 +138,22 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
     };
   }, [isLanguageOpen]);
 
+  useEffect(() => {
+    if (!isNavOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closePrimaryNav();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isNavOpen]);
+
   const normalizedLanguageQuery = languageQuery.trim().toLowerCase();
   const filteredLanguageOptions = SUPPORTED_LANGUAGE_OPTIONS.filter((option) => {
     if (!normalizedLanguageQuery) return true;
@@ -100,21 +170,44 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
       .includes(normalizedLanguageQuery);
   });
 
-  const headerClassName =
-    variant === 'landing'
-      ? `landing-header ${isLandingHeaderStuck ? 'is-stuck' : ''}`
-      : `landing-header public-page-header ${isLandingHeaderStuck ? 'is-stuck' : ''}`;
+  const headerClassName = [
+    'landing-header',
+    variant === 'page' ? 'public-page-header' : '',
+    isLandingHeaderStuck ? 'is-stuck' : '',
+    isNavOpen ? 'is-nav-open' : '',
+  ].filter(Boolean).join(' ');
 
   const homePath = buildPublicPath('home', selectedLanguage.code);
+  const footerCopy =
+    LANDING_TRANSLATIONS[selectedLanguage.code]?.footer ??
+    LANDING_TRANSLATIONS[DEFAULT_LANGUAGE_CODE].footer;
+  const navDescriptions = PUBLIC_NAV_DESCRIPTIONS[selectedLanguage.code] ?? PUBLIC_NAV_DESCRIPTIONS[DEFAULT_LANGUAGE_CODE];
+  const primaryNavItems: Array<{ key: PublicRouteKey | 'transparency'; label: string; description: string; href: string; Icon: React.ElementType }> = [
+    { key: 'charter', label: footerCopy.charter, description: navDescriptions.charter, href: buildPublicPath('charter', selectedLanguage.code), Icon: BookOpenText },
+    { key: 'governance', label: footerCopy.governance, description: navDescriptions.governance, href: buildPublicPath('governance', selectedLanguage.code), Icon: ShieldCheck },
+    { key: 'research', label: footerCopy.research, description: navDescriptions.research, href: buildPublicPath('research', selectedLanguage.code), Icon: Microscope },
+    { key: 'transparency', label: footerCopy.transparency, description: navDescriptions.transparency, href: buildPublicPath('home', selectedLanguage.code, '#transparency'), Icon: Landmark },
+    { key: 'bylaws', label: footerCopy.bylaws, description: navDescriptions.bylaws, href: buildPublicPath('bylaws', selectedLanguage.code), Icon: FileText },
+  ];
+  const navToggleLabel = isNavOpen ? navDescriptions.closeLabel : navDescriptions.openLabel;
 
   return (
     <header className={headerClassName}>
+      {isNavOpen && (
+        <button
+          type="button"
+          className="public-nav-backdrop"
+          aria-label={navDescriptions.closeLabel}
+          onClick={closePrimaryNav}
+        />
+      )}
       <div className="landing-header-shell">
         <a href={homePath} className="nav-brand" aria-label="Return to IOI Foundation home">
           <HeaderLogo className="nav-brand-logo" label="IOI Foundation" />
         </a>
 
-        <div className="language-selector" ref={languageMenuRef}>
+        <div className="landing-header-actions">
+          <div className="language-selector" ref={languageMenuRef}>
           {isLanguageOpen && (
             <button
               type="button"
@@ -137,6 +230,7 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
                 return;
               }
 
+              closePrimaryNav();
               setIsLanguageOpen(true);
             }}
           >
@@ -232,7 +326,76 @@ export const PublicHeader: React.FC<PublicHeaderProps> = ({
               </label>
             </div>
           )}
+          </div>
+
+          <button
+            type="button"
+            className={`public-nav-toggle ${isNavOpen ? 'is-open' : ''}`}
+            aria-label={navToggleLabel}
+            aria-expanded={isNavOpen}
+            aria-controls="public-primary-nav"
+            onClick={() => {
+              closeLanguageSelector();
+              setIsNavOpen((current) => !current);
+            }}
+          >
+            <span className="public-nav-glyph" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
         </div>
+      </div>
+
+      <div id="public-primary-nav" className={`public-nav-panel ${isNavOpen ? 'is-open' : ''}`}>
+        <div className="public-nav-panel-header">
+          <span>IOI Foundation</span>
+          <span>{navDescriptions.title}</span>
+          <button
+            type="button"
+            className="public-nav-drawer-close"
+            aria-label={navDescriptions.closeLabel}
+            onClick={closePrimaryNav}
+          >
+            <span>{navDescriptions.closeText}</span>
+          </button>
+        </div>
+        <nav className="public-nav" aria-label="Primary navigation">
+          {primaryNavItems.map((item) => {
+            const Icon = item.Icon;
+
+            return (
+              <a
+                key={item.key}
+                href={item.href}
+                aria-current={item.key === routeKey ? 'page' : undefined}
+                onClick={closePrimaryNav}
+              >
+                <span className="public-nav-icon" aria-hidden="true">
+                  <Icon size={17} />
+                </span>
+                <span className="public-nav-copy">
+                  <span>{item.label}</span>
+                  <span>{item.description}</span>
+                </span>
+              </a>
+            );
+          })}
+        </nav>
+        {onEnterApp && (
+          <button
+            type="button"
+            className="public-nav-login"
+            onClick={() => {
+              closePrimaryNav();
+              onEnterApp();
+            }}
+          >
+            <LogIn size={16} aria-hidden="true" />
+            <span>{footerCopy.login}</span>
+          </button>
+        )}
       </div>
     </header>
   );

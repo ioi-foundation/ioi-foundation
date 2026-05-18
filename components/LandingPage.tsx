@@ -9,6 +9,7 @@ import { researchItems } from './research/researchCatalog';
 import { LANDING_TRANSLATIONS } from './landingTranslations';
 import { DEFAULT_LANGUAGE_CODE, usePublicLanguage } from './publicLanguage';
 import { PublicHeader } from './PublicHeader';
+import { PublicFooterLinks } from './PublicFooterLinks';
 import { SeoHead } from './SeoHead';
 import { buildPublicPath, getPublicSeoPayload } from '../lib/publicRoutes';
 
@@ -16,8 +17,11 @@ interface LandingPageProps {
   onEnterApp: () => void;
 }
 
+const HERO_TITLE = 'Machine authority is coming. Make it deterministic.';
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const charterBannerRef = useRef<HTMLDivElement>(null);
   
   // Dynamic Data State
   const [minutes, setMinutes] = useState<Meeting[]>([]);
@@ -78,6 +82,125 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         }
       : item;
   });
+
+  useEffect(() => {
+    const banner = charterBannerRef.current;
+    if (!banner) return;
+
+    let isDisposed = false;
+    let cleanupMotion: (() => void) | undefined;
+
+    Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger'),
+    ]).then(([{ gsap }, { ScrollTrigger }]) => {
+      if (isDisposed || !banner.isConnected) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const motion = gsap.matchMedia();
+      cleanupMotion = () => motion.revert();
+
+      motion.add('(prefers-reduced-motion: no-preference)', () => {
+        const layer = (name: string) => banner.querySelector<HTMLElement>(`[data-charter-layer="${name}"]`);
+        const grid = layer('grid');
+        const ghost = layer('ghost');
+        const glow = layer('glow');
+        const sheen = layer('sheen');
+
+        if (!grid || !ghost || !glow || !sheen) return;
+
+        const pointerScale = window.matchMedia('(pointer: coarse)').matches ? 0.45 : 1;
+        const gridX = gsap.quickTo(grid, 'x', { duration: 0.85, ease: 'power3.out' });
+        const ghostX = gsap.quickTo(ghost, 'x', { duration: 0.95, ease: 'power3.out' });
+        const glowX = gsap.quickTo(glow, 'x', { duration: 1, ease: 'power3.out' });
+        const sheenX = gsap.quickTo(sheen, 'x', { duration: 0.8, ease: 'power3.out' });
+        const motionState = {
+          pointer: 0,
+          scroll: 0,
+        };
+        let scrollTrigger: ScrollTrigger | undefined;
+
+        const applyLayerOffsets = () => {
+          const { pointer, scroll } = motionState;
+
+          gridX(scroll * 28 + pointer * 7);
+          ghostX(scroll * -46 + pointer * -14);
+          glowX(scroll * 58 + pointer * 18);
+          sheenX(scroll * 18 + pointer * 5);
+        };
+
+        gsap.fromTo(
+          [grid, ghost, glow],
+          { opacity: 0 },
+          { opacity: (index) => [0.72, 0.82, 0.9][index], duration: 0.75, ease: 'power2.out', stagger: 0.05 }
+        );
+
+        const sheenTween = gsap.fromTo(
+          sheen,
+          { xPercent: -80, opacity: 0 },
+          {
+            xPercent: 80,
+            opacity: 0.28,
+            duration: 4.8,
+            ease: 'sine.inOut',
+            repeat: -1,
+            repeatDelay: 3.2,
+          }
+        );
+
+        const handlePointerMove = (event: PointerEvent) => {
+          const rect = banner.getBoundingClientRect();
+          const progress = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+          const x = gsap.utils.clamp(-1, 1, progress) * pointerScale;
+
+          motionState.pointer = x;
+          applyLayerOffsets();
+        };
+
+        const handlePointerLeave = () => {
+          motionState.pointer = 0;
+          applyLayerOffsets();
+        };
+
+        scrollTrigger = ScrollTrigger.create({
+          trigger: banner,
+          start: 'top bottom',
+          end: 'bottom top',
+          onUpdate: (self) => {
+            motionState.scroll = self.progress * 2 - 1;
+            applyLayerOffsets();
+          },
+        });
+
+        motionState.scroll = scrollTrigger.progress * 2 - 1;
+        applyLayerOffsets();
+
+        const handleResize = () => {
+          scrollTrigger?.refresh();
+          motionState.scroll = (scrollTrigger?.progress ?? 0.5) * 2 - 1;
+          applyLayerOffsets();
+        };
+
+        banner.addEventListener('pointermove', handlePointerMove);
+        banner.addEventListener('pointerleave', handlePointerLeave);
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+          banner.removeEventListener('pointermove', handlePointerMove);
+          banner.removeEventListener('pointerleave', handlePointerLeave);
+          window.removeEventListener('resize', handleResize);
+          scrollTrigger?.kill();
+          sheenTween.kill();
+        };
+      });
+    });
+
+    return () => {
+      isDisposed = true;
+      cleanupMotion?.();
+    };
+  }, []);
 
   // Three.js Animation Effect
   useEffect(() => {
@@ -326,20 +449,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   return (
     <div className="landing-page-wrapper">
       <SeoHead {...seo} />
-      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" variant="landing" />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" variant="landing" onEnterApp={onEnterApp} />
 
       <section className="hero">
         <div className="hero-canvas-container">
           <canvas ref={canvasRef} id="hero-canvas"></canvas>
         </div>
         <div className="hero-content">
-          <p className="hero-mark">{copy.hero.mark}</p>
-          <h1 className="hero-title">IOI Foundation</h1>
-          <p className="hero-subtitle">
-            <span>{copy.hero.subtitle[0]}</span><span className="dot"></span>
-            <span>{copy.hero.subtitle[1]}</span><span className="dot"></span>
-            <span>{copy.hero.subtitle[2]}</span>
-          </p>
+          <h1 className="hero-title">{HERO_TITLE}</h1>
           <p className="hero-oneliner">{copy.hero.oneliner}</p>
           <div className="hero-ctas">
             <a href={charterPath} className="hero-cta">{copy.hero.charterCta}</a>
@@ -398,7 +515,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
         <section id="charter" className="charter-section charter-banner-section landing-section">
           <div className="container">
-            <div className="charter-banner">
+            <div className="charter-banner" ref={charterBannerRef}>
+              <div className="charter-banner-depth" aria-hidden="true">
+                <span className="charter-banner-grid" data-charter-layer="grid" />
+                <span className="charter-banner-glow" data-charter-layer="glow" />
+                <span className="charter-banner-ghost" data-charter-layer="ghost">IMMUTABLE CONSTITUTION</span>
+                <span className="charter-banner-sheen" data-charter-layer="sheen" />
+              </div>
               <div className="charter-banner-copy">
                 <p className="section-label charter-banner-label">{copy.charterBanner.label}</p>
                 <h2 className="section-title charter-banner-title">{copy.charterBanner.title}</h2>
@@ -508,14 +631,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
             <HeaderLogo className="footer-mark-logo" />
           </a>
-          <nav className="footer-links">
-            <a href={charterPath}>{copy.footer.charter}</a>
-            <a href={bylawsPath}>{copy.footer.bylaws}</a>
-            <a href={governancePath}>{copy.footer.governance}</a>
-            <a href={researchPath}>{copy.footer.research}</a>
-            <a href={transparencyPath}>{copy.footer.transparency}</a>
-            <button type="button" className="footer-link-button" onClick={onEnterApp}>{copy.footer.login}</button>
-          </nav>
+          <PublicFooterLinks languageCode={selectedLanguage.code} />
           <p className="footer-copyright">{new Date().getFullYear()} {copy.footer.copyright}</p>
         </div>
       </footer>
