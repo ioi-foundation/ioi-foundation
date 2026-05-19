@@ -1,23 +1,48 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { supabase } from '../lib/supabase';
+import { hasSupabaseConfig, supabase } from '../lib/supabase';
 import './LandingPage.css';
 import { Meeting, Spec } from '../types';
-import { FileText, Calendar, Shield, ExternalLink, ArrowRight } from 'lucide-react';
+import { FileText, Calendar, Shield } from 'lucide-react';
+import { HeaderLogo } from './ui/HeaderLogo';
+import { researchItems } from './research/researchCatalog';
+import { LANDING_TRANSLATIONS } from './landingTranslations';
+import { DEFAULT_LANGUAGE_CODE, usePublicLanguage } from './publicLanguage';
+import { PublicHeader } from './PublicHeader';
+import { PublicFooterLinks } from './PublicFooterLinks';
+import { SeoHead } from './SeoHead';
+import { buildPublicPath, getPublicSeoPayload } from '../lib/publicRoutes';
 
 interface LandingPageProps {
   onEnterApp: () => void;
 }
 
+const HERO_TITLE = 'Machine authority is coming. Make it deterministic.';
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const charterBannerRef = useRef<HTMLDivElement>(null);
   
   // Dynamic Data State
   const [minutes, setMinutes] = useState<Meeting[]>([]);
   const [ratifiedSpecs, setRatifiedSpecs] = useState<Spec[]>([]);
+  const { selectedLanguage, setSelectedLanguage } = usePublicLanguage();
+
+  const copy = LANDING_TRANSLATIONS[selectedLanguage.code] ?? LANDING_TRANSLATIONS[DEFAULT_LANGUAGE_CODE];
+  const seo = getPublicSeoPayload('home', selectedLanguage.code);
+  const homePath = buildPublicPath('home', selectedLanguage.code);
+  const charterPath = buildPublicPath('charter', selectedLanguage.code);
+  const bylawsPath = buildPublicPath('bylaws', selectedLanguage.code);
+  const governancePath = buildPublicPath('governance', selectedLanguage.code);
+  const researchPath = buildPublicPath('research', selectedLanguage.code);
+  const transparencyPath = buildPublicPath('home', selectedLanguage.code, '#transparency');
 
   // Fetch Public Data
   useEffect(() => {
+    if (!hasSupabaseConfig) {
+      return;
+    }
+
     const fetchPublicData = async () => {
       try {
         // Fetch latest 3 meetings for Transparency section
@@ -45,6 +70,138 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     fetchPublicData();
   }, []);
 
+  const researchTeasers = researchItems.slice(0, 3).map((item) => {
+    const translatedItem = copy.research.teasers[item.slug];
+
+    return translatedItem
+      ? {
+          ...item,
+          title: translatedItem.title,
+          summary: translatedItem.summary,
+          deliverables: translatedItem.deliverables,
+        }
+      : item;
+  });
+
+  useEffect(() => {
+    const banner = charterBannerRef.current;
+    if (!banner) return;
+
+    let isDisposed = false;
+    let cleanupMotion: (() => void) | undefined;
+
+    Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger'),
+    ]).then(([{ gsap }, { ScrollTrigger }]) => {
+      if (isDisposed || !banner.isConnected) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const motion = gsap.matchMedia();
+      cleanupMotion = () => motion.revert();
+
+      motion.add('(prefers-reduced-motion: no-preference)', () => {
+        const layer = (name: string) => banner.querySelector<HTMLElement>(`[data-charter-layer="${name}"]`);
+        const grid = layer('grid');
+        const ghost = layer('ghost');
+        const glow = layer('glow');
+        const sheen = layer('sheen');
+
+        if (!grid || !ghost || !glow || !sheen) return;
+
+        const pointerScale = window.matchMedia('(pointer: coarse)').matches ? 0.45 : 1;
+        const gridX = gsap.quickTo(grid, 'x', { duration: 0.85, ease: 'power3.out' });
+        const ghostX = gsap.quickTo(ghost, 'x', { duration: 0.95, ease: 'power3.out' });
+        const glowX = gsap.quickTo(glow, 'x', { duration: 1, ease: 'power3.out' });
+        const sheenX = gsap.quickTo(sheen, 'x', { duration: 0.8, ease: 'power3.out' });
+        const motionState = {
+          pointer: 0,
+          scroll: 0,
+        };
+        let scrollTrigger: ScrollTrigger | undefined;
+
+        const applyLayerOffsets = () => {
+          const { pointer, scroll } = motionState;
+
+          gridX(scroll * 28 + pointer * 7);
+          ghostX(scroll * -46 + pointer * -14);
+          glowX(scroll * 58 + pointer * 18);
+          sheenX(scroll * 18 + pointer * 5);
+        };
+
+        gsap.fromTo(
+          [grid, ghost, glow],
+          { opacity: 0 },
+          { opacity: (index) => [0.72, 0.82, 0.9][index], duration: 0.75, ease: 'power2.out', stagger: 0.05 }
+        );
+
+        const sheenTween = gsap.fromTo(
+          sheen,
+          { xPercent: -80, opacity: 0 },
+          {
+            xPercent: 80,
+            opacity: 0.28,
+            duration: 4.8,
+            ease: 'sine.inOut',
+            repeat: -1,
+            repeatDelay: 3.2,
+          }
+        );
+
+        const handlePointerMove = (event: PointerEvent) => {
+          const rect = banner.getBoundingClientRect();
+          const progress = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
+          const x = gsap.utils.clamp(-1, 1, progress) * pointerScale;
+
+          motionState.pointer = x;
+          applyLayerOffsets();
+        };
+
+        const handlePointerLeave = () => {
+          motionState.pointer = 0;
+          applyLayerOffsets();
+        };
+
+        scrollTrigger = ScrollTrigger.create({
+          trigger: banner,
+          start: 'top bottom',
+          end: 'bottom top',
+          onUpdate: (self) => {
+            motionState.scroll = self.progress * 2 - 1;
+            applyLayerOffsets();
+          },
+        });
+
+        motionState.scroll = scrollTrigger.progress * 2 - 1;
+        applyLayerOffsets();
+
+        const handleResize = () => {
+          scrollTrigger?.refresh();
+          motionState.scroll = (scrollTrigger?.progress ?? 0.5) * 2 - 1;
+          applyLayerOffsets();
+        };
+
+        banner.addEventListener('pointermove', handlePointerMove);
+        banner.addEventListener('pointerleave', handlePointerLeave);
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+          banner.removeEventListener('pointermove', handlePointerMove);
+          banner.removeEventListener('pointerleave', handlePointerLeave);
+          window.removeEventListener('resize', handleResize);
+          scrollTrigger?.kill();
+          sheenTween.kill();
+        };
+      });
+    });
+
+    return () => {
+      isDisposed = true;
+      cleanupMotion?.();
+    };
+  }, []);
+
   // Three.js Animation Effect
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -54,7 +211,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     
     // Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0b); // Matches --lp-bg-dark
+    scene.background = new THREE.Color(0x0a0a0b);
     scene.fog = new THREE.Fog(0x0a0a0b, 650, 1400);
     
     const frustumSize = 550;
@@ -66,8 +223,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     camera.position.set(0, 0, 800);
     
     const renderer = new THREE.WebGLRenderer({
-        canvas: canvasRef.current, 
-        antialias: true, 
+        canvas: canvasRef.current,
+        antialias: true,
         alpha: true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -201,12 +358,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
     createOuter();
     createCube(270, 85);
     
-    function updateScale() {
+    function updateLogoLayout() {
         const scale = window.innerWidth < 768 ? 0.4 : 0.55;
         logoGroup.scale.setScalar(scale);
+        logoGroup.position.set(0, 40, 0);
     }
-    updateScale();
-    logoGroup.position.set(0, 40, 0);
+    updateLogoLayout();
     
     let scrollTh = window.innerHeight * 0.3;
     let curSP = 0;
@@ -255,7 +412,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
         renderer.render(scene, camera);
         
-        // Show canvas
         if (canvasRef.current && !canvasRef.current.classList.contains('loaded')) {
             canvasRef.current.classList.add('loaded');
         }
@@ -278,7 +434,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         scrollTh = window.innerHeight * 0.3;
-        updateScale();
+        updateLogoLayout();
     };
 
     window.addEventListener('resize', handleResize);
@@ -292,26 +448,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
   return (
     <div className="landing-page-wrapper">
-      <button onClick={onEnterApp} className="nav-login-btn">
-        Login
-      </button>
+      <SeoHead {...seo} />
+      <PublicHeader selectedLanguage={selectedLanguage} setSelectedLanguage={setSelectedLanguage} routeKey="home" variant="landing" onEnterApp={onEnterApp} />
 
       <section className="hero">
         <div className="hero-canvas-container">
           <canvas ref={canvasRef} id="hero-canvas"></canvas>
         </div>
         <div className="hero-content">
-          <p className="hero-mark">Charter · Public Stewardship</p>
-          <h1 className="hero-title">IOI Foundation</h1>
-          <p className="hero-subtitle">
-            <span>Governance</span><span className="dot"></span>
-            <span>Research</span><span className="dot"></span>
-            <span>Protocol Integrity</span>
-          </p>
-          <p className="hero-oneliner">A public institution for protocol neutrality, research funding, and long-horizon security.</p>
+          <h1 className="hero-title">{HERO_TITLE}</h1>
+          <p className="hero-oneliner">{copy.hero.oneliner}</p>
           <div className="hero-ctas">
-            <a href="#charter" className="hero-cta">Read the Charter</a>
-            <a href="#governance" className="hero-cta">Governance Process</a>
+            <a href={charterPath} className="hero-cta">{copy.hero.charterCta}</a>
+            <a href={governancePath} className="hero-cta">{copy.hero.governanceCta}</a>
           </div>
         </div>
         <div className="scroll-indicator"></div>
@@ -320,120 +469,124 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       <main id="main-content">
         <section id="mission" className="mission landing-section">
           <div className="container">
-            <p className="section-label">Mission</p>
-            <h2 className="section-title">Autonomous systems will become more powerful than the institutions that deploy them. </h2>
-            <p className="section-subhead">The only viable path forward is to make that power bounded, verifiable, and sovereign by design.</p>
+            <p className="section-label">{copy.mission.label}</p>
+            <h2 className="section-title">{copy.mission.title}</h2>
+            <p className="section-subhead">{copy.mission.subhead}</p>
             <div className="section-text">
-              <p>Autonomous systems are already capable. What's missing is trust.</p>
-              <p>As agents gain the ability to act independently — across code, infrastructure, and real-world systems — the risk is no longer theoretical. Systems that can act without constraint cannot be safely deployed at scale.</p>
-              <p>IOI defines a new category: <strong>sovereign agent infrastructure</strong> — where every actor operates within explicit, enforceable authority boundaries, and every action is provably within bounds.</p>
+              <p>{copy.mission.paragraph1}</p>
+              <p>{copy.mission.paragraph2}</p>
+              <p>{copy.mission.paragraph3BeforeStrong} <strong>{copy.mission.paragraph3Strong}</strong> {copy.mission.paragraph3AfterStrong}</p>
             </div>
             <div className="mandate-grid">
               <div className="mandate-block">
-                <h4>Bounded</h4>
-                <p className="mandate-premise">Autonomy must be constrained by design, not intent.</p>
+                <h4>{copy.mission.bounded.title}</h4>
+                <p className="mandate-premise">{copy.mission.bounded.premise}</p>
                 <ul>
-                  <li>Capability-scoped execution and explicit authority boundaries</li>
-                  <li>Dynamic constraints that scale with trust — not static limits on intelligence</li>
-                  <li>Actors cannot exceed their delegated permissions, regardless of model behavior</li>
+                  {copy.mission.bounded.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
                 </ul>
-                <p className="mandate-coda">Unbounded autonomy is unsafe.<br/>Bounded autonomy is an engineering discipline.</p>
+                <p className="mandate-coda">{copy.mission.bounded.codaTop}<br/>{copy.mission.bounded.codaBottom}</p>
               </div>
               <div className="mandate-block">
-                <h4>Verifiable</h4>
-                <p className="mandate-premise">Trust cannot depend on the platform — it must be independently provable.</p>
+                <h4>{copy.mission.verifiable.title}</h4>
+                <p className="mandate-premise">{copy.mission.verifiable.premise}</p>
                 <ul>
-                  <li>Cryptographic receipts and auditable execution</li>
-                  <li>Deterministic policy enforcement and replayable outcomes</li>
-                  <li>Evidence that an action was valid — not just logs that it happened</li>
+                  {copy.mission.verifiable.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
                 </ul>
-                <p className="mandate-coda">If a system cannot prove what it did, it cannot be trusted with real authority.</p>
+                <p className="mandate-coda">{copy.mission.verifiable.codaTop}<br/>{copy.mission.verifiable.codaBottom}</p>
               </div>
               <div className="mandate-block">
-                <h4>Sovereign</h4>
-                <p className="mandate-premise">Authority must belong to the user — not the system, not the platform.</p>
+                <h4>{copy.mission.sovereign.title}</h4>
+                <p className="mandate-premise">{copy.mission.sovereign.premise}</p>
                 <ul>
-                  <li>Capability ownership, revocation, and delegation under user control</li>
-                  <li>Portable identity and policy across environments and providers</li>
-                  <li>Verification that does not depend on a single institution</li>
+                  {copy.mission.sovereign.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
                 </ul>
-                <p className="mandate-coda">Autonomous systems should carry their authority — and their constraints — with them.</p>
+                <p className="mandate-coda">{copy.mission.sovereign.codaTop}<br/>{copy.mission.sovereign.codaBottom}</p>
               </div>
             </div>
-            <p className="charter-excerpt"><em>"Without a shared framework for bounded and verifiable execution, one system's autonomy becomes another system's risk. IOI provides that framework."</em></p>
+            <p className="charter-excerpt"><em>{copy.mission.excerpt}</em></p>
           </div>
         </section>
 
-        <section id="charter" className="charter-section landing-section">
+        <section id="charter" className="charter-section charter-banner-section landing-section">
           <div className="container">
-            <p className="section-label">Charter</p>
-            <h2 className="section-title">The Foundation Charter</h2>
-            <div className="section-text"><p>The Charter defines the Foundation's mandate, limits, and governance requirements. It is designed to outlast market cycles and keep protocol stewardship legible to the public.</p></div>
-            <div className="grants-ctas">
-                <a href="#" className="section-cta flex items-center gap-2"><FileText size={16} /> Bylaws (PDF)</a>
-                <a href="#" className="section-cta flex items-center gap-2"><Shield size={16} /> Governance Framework</a>
-                <a href="#" className="section-cta flex items-center gap-2"><ArrowRight size={16} /> Decision Log</a>
-            </div>
-          </div>
-        </section>
-
-        <section id="governance" className="governance landing-section">
-          <div className="container">
-            <p className="section-label">Governance</p>
-            <h2 className="section-title">Constitutional Protocol Stewardship</h2>
-            <div className="section-text"><p>Protocol governance requires structures that outlast any single generation of stakeholders. The Foundation maintains separation between operational decisions and constitutional amendments, ensuring stability without stagnation.</p></div>
-            <div className="process-flow">
-              <h4>Governance Process</h4>
-              <ol className="process-steps">
-                <li><span className="step-name">Proposal</span><span className="step-desc">IOI Improvement Proposal (IIP) submitted publicly</span></li>
-                <li><span className="step-name">Review</span><span className="step-desc">Technical Council + public comment window</span></li>
-                <li><span className="step-name">Safety</span><span className="step-desc">Formal security review requirements</span></li>
-                <li><span className="step-name">Ratification</span><span className="step-desc">Threshold rule with defined quorum</span></li>
-                <li><span className="step-name">Activation</span><span className="step-desc">Scheduled, versioned, reproducible releases</span></li>
-                <li><span className="step-name">Record</span><span className="step-desc">Final decision + rationale published</span></li>
-              </ol>
+            <div className="charter-banner" ref={charterBannerRef}>
+              <div className="charter-banner-depth" aria-hidden="true">
+                <span className="charter-banner-grid" data-charter-layer="grid" />
+                <span className="charter-banner-glow" data-charter-layer="glow" />
+                <span className="charter-banner-ghost" data-charter-layer="ghost">IMMUTABLE CONSTITUTION</span>
+                <span className="charter-banner-sheen" data-charter-layer="sheen" />
+              </div>
+              <div className="charter-banner-copy">
+                <p className="section-label charter-banner-label">{copy.charterBanner.label}</p>
+                <h2 className="section-title charter-banner-title">{copy.charterBanner.title}</h2>
+                <p className="charter-banner-text">{copy.charterBanner.text}</p>
+              </div>
+              <div className="charter-banner-actions">
+                <a href={charterPath} className="hero-cta charter-banner-primary">{copy.charterBanner.primaryCta}</a>
+                <div className="grants-ctas charter-banner-links">
+                  <a href={bylawsPath} className="section-cta flex items-center gap-2"><FileText size={16} /> {copy.charterBanner.bylawsLink}</a>
+                  <a href={governancePath} className="section-cta flex items-center gap-2"><Shield size={16} /> {copy.charterBanner.governanceLink}</a>
+                  <a href={transparencyPath} className="section-cta flex items-center gap-2"><Calendar size={16} /> {copy.charterBanner.decisionLogLink}</a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         <section id="research" className="research landing-section">
           <div className="container">
-            <p className="section-label">Research Programs</p>
-            <h2 className="section-title">Long-Horizon Technical Investment</h2>
-            <div className="section-text"><p>The Foundation funds research that commercial entities cannot justify — work measured in decades, not quarters.</p></div>
+            <p className="section-label">{copy.research.label}</p>
+            <h2 className="section-title">{copy.research.title}</h2>
+            <div className="section-text"><p>{copy.research.intro}</p></div>
             <div className="research-areas">
-              <div className="research-area"><h4>Post-Quantum Migration</h4><p>Developing transition pathways for cryptographic primitives as quantum computing matures.</p><span className="research-deliverable">Deliverables: Reference roadmap, test vectors, upgrade semantics</span></div>
-              <div className="research-area"><h4>Formal Verification</h4><p>Proving protocol correctness through mathematical methods. We invest in tooling that allows critical infrastructure to be verified, not merely tested.</p><span className="research-deliverable">Deliverables: Spec proofs, model checking, invariant suites</span></div>
-              <div className="research-area"><h4>Semantic Consensus</h4><p>Research into deterministic meaning resolution across heterogeneous agent populations.</p><span className="research-deliverable">Deliverables: Canonicalization rules, verifier frameworks, determinism boundaries</span></div>
+              {researchTeasers.map((item) => (
+                <div key={item.slug} className="research-area">
+                  <h4>{item.title}</h4>
+                  <div>
+                    <p>{item.summary}</p>
+                    <span className="research-deliverable">{item.deliverables}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="open-calls"><span className="open-calls-label">Open Calls</span><span className="open-calls-date">Next RFP: Q1 2026</span></div>
+            <div className="open-calls">
+              <span className="open-calls-label">{copy.research.catalogLabel}</span>
+              <a href={researchPath} className="open-calls-date">{copy.research.viewAll}</a>
+            </div>
           </div>
         </section>
 
         <section id="transparency" className="transparency landing-section">
           <div className="container">
-            <p className="section-label">Public Record</p>
-            <h2 className="section-title">Transparency</h2>
+            <p className="section-label">{copy.transparency.label}</p>
+            <h2 className="section-title">{copy.transparency.title}</h2>
             <div className="section-text">
-              <p>Foundations are judged by their records. We publish decisions, governance outcomes, and financial summaries as a matter of institutional duty.</p>
+              <p>{copy.transparency.intro}</p>
             </div>
             
             <div className="transparency-grid">
               <div className="transparency-item">
-                <h4>Legal Entity</h4><p>IOI Foundation<br/>Status: Formation in progress (Dec 2025)</p>
+                <h4>{copy.transparency.legalEntityTitle}</h4>
+                <p>{copy.transparency.legalEntityName}</p>
               </div>
 
               {/* DYNAMIC: Ratified Specs */}
               <div className="transparency-item">
-                <h4>Ratified Standards</h4>
-                 {ratifiedSpecs.length === 0 ? <p className="text-sm opacity-50">Fetching records...</p> : (
+                <h4>{copy.transparency.ratifiedStandardsTitle}</h4>
+                 {ratifiedSpecs.length === 0 ? <p className="text-sm opacity-50">{copy.transparency.fetchingRecords}</p> : (
                   <div className="flex flex-col gap-3">
                     {ratifiedSpecs.map(s => (
                       <div key={s.id} className="flex items-start gap-2">
                         <FileText size={16} className="text-[var(--lp-accent)] shrink-0 mt-0.5" />
                         <div>
                             <span className="text-sm block font-medium text-[var(--lp-text-dark)]">{s.filename}</span>
-                            <span className="text-xs text-[var(--lp-text-muted)]">Version {s.version}</span>
+                            <span className="text-xs text-[var(--lp-text-muted)]">{copy.transparency.versionLabel} {s.version}</span>
                         </div>
                       </div>
                     ))}
@@ -443,15 +596,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
 
               {/* DYNAMIC: Meeting Minutes */}
               <div className="transparency-item">
-                <h4>Recent Minutes</h4>
-                {minutes.length === 0 ? <p className="text-sm opacity-50">Fetching records...</p> : (
+                <h4>{copy.transparency.recentMinutesTitle}</h4>
+                {minutes.length === 0 ? <p className="text-sm opacity-50">{copy.transparency.fetchingRecords}</p> : (
                   <div className="flex flex-col gap-3">
                     {minutes.map(m => (
                       <div key={m.id} className="flex items-start gap-2">
                         <Calendar size={16} className="text-[var(--lp-text-muted)] shrink-0 mt-0.5" />
                         <div>
                             <span className="text-sm block font-medium text-[var(--lp-text-dark)]">{m.title}</span>
-                            <span className="text-xs text-[var(--lp-text-muted)]">{new Date(m.date).toLocaleDateString(undefined, {dateStyle: 'medium'})}</span>
+                            <span className="text-xs text-[var(--lp-text-muted)]">{new Date(m.date).toLocaleDateString(selectedLanguage.code, {dateStyle: 'medium'})}</span>
                         </div>
                       </div>
                     ))}
@@ -460,11 +613,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </div>
 
               <div className="transparency-item">
-                <h4>Contact</h4>
-                <p>foundation at ioi.ai</p>
+                <h4>{copy.transparency.contactTitle}</h4>
+                <p>{copy.transparency.contactEmail}</p>
                 <div className="mt-2">
                     <a href="#security" className="flex items-center gap-1.5 text-sm">
-                        <Shield size={14} /> Security Disclosure
+                        <Shield size={14} /> {copy.transparency.securityDisclosure}
                     </a>
                 </div>
               </div>
@@ -475,15 +628,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       
       <footer className="landing-footer">
         <div className="footer-content">
-          <div className="footer-mark">IOI Foundation</div>
-          <nav className="footer-links">
-            <a href="#charter">Charter</a>
-            <a href="#governance">Governance</a>
-            <a href="#research">Research</a>
-            <a href="#grants">Grants</a>
-            <a href="#transparency">Transparency</a>
-          </nav>
-          <p className="footer-copyright">{new Date().getFullYear()} IOI Foundation. Protocol stewardship for the long term.</p>
+          <a href={homePath} className="footer-mark" aria-label="Return to IOI Foundation home">
+            <HeaderLogo className="footer-mark-logo" />
+          </a>
+          <PublicFooterLinks languageCode={selectedLanguage.code} />
+          <p className="footer-copyright">{new Date().getFullYear()} {copy.footer.copyright}</p>
         </div>
       </footer>
     </div>

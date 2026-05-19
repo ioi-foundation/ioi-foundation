@@ -7,7 +7,7 @@ import { IOILogo } from './ui/IOILogo';
 import { BootSequence } from './BootSequence';
 
 export const LoginGate: React.FC = () => {
-  const { login, loading } = useAuth();
+  const { login, loading, backendAvailable } = useAuth();
   
   // Stages: 'IDENTITY' -> 'AUTH' -> 'BOOT' -> (Complete handled by App wrapper)
   const [stage, setStage] = useState<'IDENTITY' | 'AUTH' | 'BOOT'>('IDENTITY');
@@ -20,6 +20,7 @@ export const LoginGate: React.FC = () => {
   // Step 1: Just checks if username is empty (Client side only for now)
   const handleIdentitySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!backendAvailable) return;
     if (!username.trim()) return;
     setStage('AUTH');
     setError('');
@@ -79,10 +80,17 @@ export const LoginGate: React.FC = () => {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 autoFocus
+                disabled={!backendAvailable}
                 className="bg-zinc-950/80 border-zinc-700"
               />
             </div>
-            <Button className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200 group">
+            {!backendAvailable && (
+              <div className="flex items-center gap-2 text-amber-300 text-xs bg-amber-900/10 p-3 rounded border border-amber-700/20">
+                <AlertCircle size={14} />
+                <span>The internal application backend is intentionally offline in this environment.</span>
+              </div>
+            )}
+            <Button className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200 group" disabled={!backendAvailable}>
               Proceed <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </form>

@@ -10,3 +10,8 @@ declare module 'diff' {
   export function diffWords(oldText: string, newText: string, options?: any): Change[];
   export function diffChars(oldText: string, newText: string, options?: any): Change[];
 }
+
+declare module '*.pdf' {
+  const src: string;
+  export default src;
+}

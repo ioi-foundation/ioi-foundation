@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Profile, Role } from '../types';
-import { supabase } from '../lib/supabase';
+import { hasSupabaseConfig, supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: Profile | null;
@@ -9,6 +9,7 @@ interface AuthContextType {
   addMember: (username: string, role: Role, password: string) => Promise<{ success: boolean; message?: string }>;
   updatePassword: (oldPassword: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
   loading: boolean;
+  backendAvailable: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
@@ -17,7 +18,8 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {}, 
   addMember: async () => ({ success: false }),
   updatePassword: async () => ({ success: false }),
-  loading: true 
+  loading: true,
+  backendAvailable: false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -28,6 +30,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check local storage for persisted session
   useEffect(() => {
+    if (!hasSupabaseConfig) {
+      localStorage.removeItem('ioi_nexus_user_id');
+      setLoading(false);
+      return;
+    }
+
     const storedId = localStorage.getItem('ioi_nexus_user_id');
     if (storedId) {
       fetchUser(storedId);
@@ -37,17 +45,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const fetchUser = async (id: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
-    if (data) {
-      setUser(data);
-    } else {
-      // Invalid ID in storage
+    try {
+      const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
+      if (data) {
+        setUser(data);
+      } else {
+        // Invalid ID in storage
+        localStorage.removeItem('ioi_nexus_user_id');
+      }
+    } catch (error) {
+      console.warn('Failed to restore persisted session:', error);
       localStorage.removeItem('ioi_nexus_user_id');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const login = async (username: string, accessKey: string) => {
+    if (!hasSupabaseConfig) {
+      return {
+        success: false,
+        message: 'The internal application backend is not deployed in this environment yet.',
+      };
+    }
+
     setLoading(true);
     
     // RPC Call for secure verification via server-side function
@@ -81,6 +102,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const addMember = async (username: string, role: Role, password: string) => {
+    if (!hasSupabaseConfig) {
+      return { success: false, message: 'Member management is unavailable while the backend is offline.' };
+    }
+
     if (!user || user.role !== 'Maintainer') {
         return { success: false, message: 'Unauthorized. Maintainers only.' };
     }
@@ -99,6 +124,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePassword = async (oldPassword: string, newPassword: string) => {
+    if (!hasSupabaseConfig) {
+      return { success: false, message: 'Password updates are unavailable while the backend is offline.' };
+    }
+
     if (!user) return { success: false, message: 'Not logged in.' };
 
     const { data, error } = await supabase.rpc('update_password_rpc', {
@@ -119,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, addMember, updatePassword, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, addMember, updatePassword, loading, backendAvailable: hasSupabaseConfig }}>
       {children}
     </AuthContext.Provider>
   );
